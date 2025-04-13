@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:moi_app/src/utils/theme/theme.dart';
+
+import 'src/features/authentication/screens/splash_screen/splash_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -19,10 +22,11 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       theme: TAppTheme.lightTheme,
       darkTheme: TAppTheme.darkTheme,
       themeMode: ThemeMode.system,
+      home: SplashScreen(),
     );
   }
 }
