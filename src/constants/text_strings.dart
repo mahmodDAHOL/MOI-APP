@@ -13,3 +13,7 @@ const String tOnBoardingSubTitle3 = "Save time by just copy and pasting complete
 const String tOnBoardingCounter1 = "1/3";
 const String tOnBoardingCounter2 = "2/3";
 const String tOnBoardingCounter3 = "3/3";
+
+
+const String tWelcomeTitle = "Build Owesome App";
+const String tWelcomeSubTitle = "Let's put your creativity on the development highway, craft apps that everyone love.";
