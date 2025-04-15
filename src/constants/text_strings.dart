@@ -17,3 +17,18 @@ const String tOnBoardingCounter3 = "3/3";
 
 const String tWelcomeTitle = "Build Owesome App";
 const String tWelcomeSubTitle = "Let's put your creativity on the development highway, craft apps that everyone love.";
+
+
+const String tLoginTitle = "Welcome back..";
+const String tLoginSubTitle = "Make it Work, Make it right, Make it fast";
+
+
+
+const String tForgetPasswordTitle = "Make Selection!";
+const String tForgetPasswordSubTitle = "Selecte one of the options given below to reset your password.";
+const String tResetViaEmail = "Reset via E-Mail Verification.";
+const String tResetViaPhone = "Reset via Phone Verification.";
+
+const String tForgetPhoneSubTitle = "Enter your registered Phone No to recieve OTP";
+const String tForgetMailSubTitle = "Enter your registered E-Mail No to recieve OTP";
+

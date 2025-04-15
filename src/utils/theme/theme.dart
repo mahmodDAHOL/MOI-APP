@@ -3,6 +3,7 @@ import 'package:moi_app/src/utils/theme/widget_themes/outlined_button_theme.dart
 import 'package:moi_app/src/utils/theme/widget_themes/text_theme.dart';
 
 import 'widget_themes/eleveated_button_theme.dart';
+import 'widget_themes/text_field_theme.dart';
 
 class TAppTheme {
   TAppTheme._();
@@ -12,6 +13,7 @@ class TAppTheme {
     textTheme: TTextTheme.lightTextTheme,
     outlinedButtonTheme: TOutlinedButtonTheme.lightOutlinedButtonTheme,
     elevatedButtonTheme: TElevatedButtonTheme.lightElevatedButtonTheme,
+    inputDecorationTheme: TTextFormFieldTheme.lightInputDecorationTheme,
   );
 
   static ThemeData darkTheme = ThemeData(
@@ -19,5 +21,6 @@ class TAppTheme {
     textTheme: TTextTheme.darkTextTheme,
     outlinedButtonTheme: TOutlinedButtonTheme.darkOutlinedButtonTheme,
     elevatedButtonTheme: TElevatedButtonTheme.darkElevatedButtonTheme,
+    inputDecorationTheme: TTextFormFieldTheme.darkInputDecorationTheme,
   );
 }
