@@ -13,7 +13,7 @@ class FadeInAnimationController extends GetxController {
     await Future.delayed(Duration(milliseconds: 3000));
     animate.value = false;
     await Future.delayed(Duration(milliseconds: 2000));
-    Get.offAll(LoginScreen());
+    Get.offAll(() => LoginScreen());
   }
 
   Future startAnimation() async {

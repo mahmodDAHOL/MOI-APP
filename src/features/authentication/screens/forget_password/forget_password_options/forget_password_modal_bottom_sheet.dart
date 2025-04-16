@@ -13,7 +13,7 @@ class ForgetPasswordScreen {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       builder: (context) {
         return Container(
-          padding: EdgeInsets.all(tDefualtSize),
+          padding: EdgeInsets.all(tDefaultSize),
           child: Column(
             children: [
               Text(

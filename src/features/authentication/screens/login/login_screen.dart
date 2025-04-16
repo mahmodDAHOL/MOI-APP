@@ -16,7 +16,7 @@ class LoginScreen extends StatelessWidget {
       child: Scaffold(
         body: SingleChildScrollView(
           child: Container(
-            padding: EdgeInsets.all(tDefualtSize),
+            padding: EdgeInsets.all(tDefaultSize),
             child: Column(
               children: [
                 FormHeaderWidget(

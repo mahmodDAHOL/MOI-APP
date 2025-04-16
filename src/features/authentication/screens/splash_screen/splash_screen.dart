@@ -23,10 +23,10 @@ class SplashScreen extends StatelessWidget {
             TFadeInAnimation(
               durationInMs: 1600,
               animate: TAnimateposition(
-                topAfter: tDefualtSize,
+                topAfter: tDefaultSize,
                 topBefor: -30,
                 leftBefor: -30,
-                leftAfter: tDefualtSize,
+                leftAfter: tDefaultSize,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -54,7 +54,7 @@ class SplashScreen extends StatelessWidget {
                 bottomBefor: 0,
                 bottomAfter: 60,
                 rightBefor: 0,
-                rightAfter: tDefualtSize,
+                rightAfter: tDefaultSize,
               ),
               child: Container(
                 width: tSplashContainerSize,

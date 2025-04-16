@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:moi_app/src/common_widgets/form/form_header_widget.dart';
 import 'package:moi_app/src/constants/image_strings.dart';
 import 'package:moi_app/src/constants/sizes.dart';
+import 'package:moi_app/src/features/authentication/screens/forget_password_otp/otp_screen.dart';
 
 import '../../../../constants/text_strings.dart';
 
@@ -14,7 +16,7 @@ class ForgetPasswordMailScreen extends StatelessWidget {
       child: Scaffold(
         body: SingleChildScrollView(
           child: Container(
-            padding: EdgeInsets.all(tDefualtSize),
+            padding: EdgeInsets.all(tDefaultSize),
             child: Column(
               children: [
                 FormHeaderWidget(
@@ -43,7 +45,12 @@ class ForgetPasswordMailScreen extends StatelessWidget {
                 SizedBox(height: tFormHeight),
                 SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton(onPressed: () {}, child: Text("Next")),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Get.to(() => OtpScreen());
+                    },
+                    child: Text("Next"),
+                  ),
                 ),
               ],
             ),
