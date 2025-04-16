@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
+import '../../controllers/login_controller.dart';
 import '../forget_password/forget_password_options/forget_password_modal_bottom_sheet.dart';
 
 class LoginFooterWidget extends StatelessWidget {
-  const LoginFooterWidget({super.key});
+  LoginFooterWidget({super.key});
+  LoginController loginController = Get.put(LoginController());
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +24,12 @@ class LoginFooterWidget extends StatelessWidget {
           ),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(onPressed: () {}, child: Text("LOGIN")),
+            child: ElevatedButton(
+              onPressed: () {
+                loginController.loginUser();
+              },
+              child: Text("LOGIN"),
+            ),
           ),
         ],
       ),

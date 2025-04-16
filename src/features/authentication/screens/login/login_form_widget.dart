@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:moi_app/src/features/authentication/controllers/login_controller.dart';
 
 import '../../../../constants/sizes.dart';
 
 class LoginForm extends StatelessWidget {
-  const LoginForm({super.key});
+  LoginForm({super.key});
+  LoginController loginController = Get.put(LoginController());
 
   @override
   Widget build(BuildContext context) {
@@ -14,6 +17,7 @@ class LoginForm extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextFormField(
+              controller: loginController.emailController,
               decoration: InputDecoration(
                 prefixIcon: Icon(Icons.person_outline_outlined),
                 labelText: "E-mail",
@@ -23,6 +27,7 @@ class LoginForm extends StatelessWidget {
             ),
             const SizedBox(height: tFormHeight - 20),
             TextFormField(
+              controller: loginController.passwordController,
               decoration: InputDecoration(
                 prefixIcon: Icon(Icons.fingerprint),
                 labelText: "Password",

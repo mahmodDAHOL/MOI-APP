@@ -3,12 +3,15 @@ import 'package:get/get.dart';
 import 'package:moi_app/src/common_widgets/form/form_header_widget.dart';
 import 'package:moi_app/src/constants/image_strings.dart';
 import 'package:moi_app/src/constants/sizes.dart';
-import 'package:moi_app/src/features/authentication/screens/forget_password_otp/otp_screen.dart';
+import 'package:moi_app/src/features/authentication/controllers/forget_password_controller.dart';
 
 import '../../../../constants/text_strings.dart';
 
 class ForgetPasswordMailScreen extends StatelessWidget {
-  const ForgetPasswordMailScreen({super.key});
+  ForgetPasswordMailScreen({super.key});
+  ForgetPasswordController forgetPasswordController = Get.put(
+    ForgetPasswordController(),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +35,7 @@ class ForgetPasswordMailScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       TextFormField(
+                        controller: forgetPasswordController.emailController,
                         decoration: InputDecoration(
                           prefixIcon: Icon(Icons.person_outline_outlined),
                           labelText: "E-mail",
@@ -47,7 +51,7 @@ class ForgetPasswordMailScreen extends StatelessWidget {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
-                      Get.to(() => OtpScreen());
+                      forgetPasswordController.forgetPassword();
                     },
                     child: Text("Next"),
                   ),

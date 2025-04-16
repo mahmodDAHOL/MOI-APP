@@ -32,6 +32,5 @@ const String tResetViaPhone = "Reset via Phone Verification.";
 const String tForgetPhoneSubTitle = "Enter your registered Phone No to recieve OTP";
 const String tForgetMailSubTitle = "Enter your registered E-Mail No to recieve OTP";
 
-const String tOtpTitle = "CO\nDE";
-const String tOtpSubTitle = "Verification";
-const String tOtpMessage = "Enter the verification code sent at";
+
+const String tOtpMessage = "Password reset instructions have been sent at";
