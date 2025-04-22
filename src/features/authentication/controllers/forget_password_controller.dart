@@ -36,17 +36,16 @@ class ForgetPasswordController extends GetxController {
         },
         body: jsonEncode(reqBody),
       );
-      if (response.statusCode == 200){
+      if (response.statusCode == 200) {
         var jsonResponse = jsonDecode(response.body);
         if (jsonResponse['_server_messages'].contains(
           "Password reset instructions have been sent to your email",
         )) {
           Get.to(() => OtpScreen(email: emailController.text));
-        } else {
-          print("something went wrong");
         }
+      } else {
+        print("something went wrong");
       }
-      
     }
   }
 }
