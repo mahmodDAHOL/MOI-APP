@@ -14,7 +14,10 @@ void main() async {
   final prefs = await sharedPreferencesController.prefs;
   String? headersencoded = prefs.getString('headers');
   if (headersencoded != null) {
-    Map<String, dynamic> headersdecoded = json.decode(headersencoded);
+    // Decode the headers and convert to Map<String, String>
+    Map<String, dynamic> tempHeaders = json.decode(headersencoded);
+    Map<String, String> headersdecoded = Map<String, String>.from(tempHeaders);
+
     session.setHeader(headersdecoded);
   }
   Get.put(session);

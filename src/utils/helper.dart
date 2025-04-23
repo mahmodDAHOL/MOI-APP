@@ -3,14 +3,11 @@ import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:html/parser.dart' as parser;
 import 'package:http/http.dart' as http;
-import 'package:moi_app/main.dart';
-import '../features/authentication/controllers/login_controller.dart';
-import '../features/authentication/controllers/shared_preferences_controller.dart';
 
 class Session {
   Map<String, String> headers = {};
 
-  void setHeader(headers){
+  void setHeader(Map<String, String> headers) {
     this.headers = headers;
   }
 
@@ -48,13 +45,10 @@ class Session {
 }
 
 Future<Map<String, dynamic>?> getDesktopPage(String domain) async {
-  LoginController loginController = Get.put(LoginController());
-  final sharedPreferencesController = Get.put(SharedPreferencesController());
-  final prefs = await sharedPreferencesController.prefs;
-  
+  Session session = Get.find<Session>();
+
   try {
     final homeUrl = Uri.parse("$domain/app/home");
-    Session session = loginController.session;
     final homeResponse = await session.get(homeUrl);
     final homeHtmlContent = homeResponse.body;
 
@@ -76,8 +70,7 @@ Future<Map<String, dynamic>?> getDesktopPage(String domain) async {
       desktopPageUrl,
       body: postData,
     );
-    String headersencoded = json.encode(desktopPageResponse.headers);
-    prefs.setString('headers', headersencoded);
+
     return jsonDecode(desktopPageResponse.body);
   } catch (e) {
     print("An error occurred: $e");
