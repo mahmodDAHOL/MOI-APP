@@ -7,51 +7,130 @@ import '../../../utils/helper.dart';
 class ListViewController extends GetxController {
   final session = Get.find<Session>();
   final String domain = 'https://mooii.erpnext.com';
-  Future<List<Map<String, dynamic>>> getReportView() async {
+
+  // Observable filter variable
+  var filter = ''.obs;
+
+  Future<List<Map<String, dynamic>>?> getReportView(
+    String doctype,
+    String filter,
+  ) async {
     final reportViewUrl = Uri.parse(
       "$domain/api/method/frappe.desk.reportview.get",
     );
-    List<Map<String, dynamic>> defualtFields = await getListviewFields();
-    String fields = '["${defualtFields.map((field) => "`tabItem`.`${field["fieldname"]}`").join('","')}"]';
-    Map<String, String> reqBody = {
-      'doctype': 'Item',
-      'fields': fields,
-      'filters': '[]',
-      'order_by': '`tabItem`.`modified` desc',
-      'start': '0',
-      'page_length': '20',
-      'view': 'List',
-      'group_by': '',
-      'with_comment_count': '1',
-    };
-    final response = await session.post(reportViewUrl, body: reqBody);
-    Map<String, dynamic> data = jsonDecode(response.body);
-    List<String> keys = List<String>.from(data["message"]["keys"]);
-    keys = keys.map((item) => item.replaceAll('_', ' ')).toList();
-    List<List<dynamic>> values = List<List<dynamic>>.from(
-      data["message"]["values"],
+
+    List<Map<String, dynamic>>? ListviewFields = await getListviewFields(
+      doctype,
     );
 
-    List<Map<String, dynamic>> listOfMaps = [];
-
-    for (var row in values) {
-      Map<String, dynamic> map = {};
-      for (int i = 0; i < keys.length; i++) {
-        map[keys[i].toString()] = row[i];
+    if (ListviewFields != null) {
+      // Use the filter value in the request
+      String fields =
+          '["${ListviewFields.map((field) => "`tab$doctype`.`${field['fieldname']}`").join('","')}"]'
+              .replaceAll("status_field", "docstatus");
+      String filterList;
+      if (filter.isNotEmpty) {
+        List listElemets = [doctype, "name", "like", "%$filter%"];
+        // Convert the list to a string with quotes around each element
+        filterList = "[${listElemets.map((item) => '"$item"').join(", ")}]";
+      } else {
+        filterList = '';
       }
-      listOfMaps.add(map);
+
+      Map<String, String> reqBody = {
+        'doctype': doctype,
+        'fields': fields,
+        'filters': '[$filterList]', // Use the filter value here
+        'order_by': '`tab$doctype`.`modified` desc',
+        'start': '0',
+        'page_length': '20',
+        'view': 'List',
+        'group_by': '',
+        'with_comment_count': '1',
+      };
+
+      final response = await session.post(reportViewUrl, body: reqBody);
+      Map<String, dynamic> data = jsonDecode(response.body);
+
+      List<String> keys = List<String>.from(data["message"]["keys"]);
+      keys = keys.map((item) => item.replaceAll('_', ' ')).toList();
+
+      List<List<dynamic>> values = List<List<dynamic>>.from(
+        data["message"]["values"],
+      );
+
+      List<Map<String, dynamic>> listOfMaps = [];
+
+      for (var row in values) {
+        Map<String, dynamic> map = {};
+        for (int i = 0; i < keys.length; i++) {
+          map[keys[i].toString()] = row[i];
+        }
+        listOfMaps.add(map);
+      }
+
+      return listOfMaps;
+    } else {
+      return null;
     }
-    return listOfMaps;
   }
 
-  Future<List<Map<String, dynamic>>> getListviewFields() async {
+  Future<List<Map<String, dynamic>>?> getListviewFields(String doctype) async {
     final reportViewUrl = Uri.parse(
       "$domain/api/method/frappe.desk.listview.get_list_settings",
     );
-    Map<String, String> reqBody = {'doctype': 'Item'};
+
+    Map<String, String> reqBody = {'doctype': doctype};
     final response = await session.post(reportViewUrl, body: reqBody);
     Map<String, dynamic> data = jsonDecode(response.body);
-    List<Map<String, dynamic>> defualtFields = List<Map<String, dynamic>>.from(jsonDecode(data["message"]["fields"]));
-    return defualtFields;
+
+    if (data.containsKey("message") &&
+        data["message"] != null &&
+        data["message"].containsKey("fields") &&
+        data["message"]["fields"] != null) {
+      List<Map<String, dynamic>> fields = List<Map<String, dynamic>>.from(
+        jsonDecode(data["message"]["fields"]),
+      );
+      return fields;
+    } else {
+      final reportViewUrl = Uri.parse(
+        "$domain/api/method/frappe.desk.doctype.list_view_settings.list_view_settings.get_default_listview_fields",
+      );
+      final response = await session.post(reportViewUrl, body: reqBody);
+      Map<String, dynamic> data = jsonDecode(response.body);
+      List fields = data["message"];
+
+      // Transform the list into a list of maps
+      List<Map<String, dynamic>> defaultFields =
+          fields.map((field) {
+            return {"fieldname": field, "label": field.replaceAll("_", " ")};
+          }).toList();
+
+      return defaultFields;
+    }
+  }
+
+  Future<List<List<String>>> filterReportView(String doctype) async {
+    final reportViewUrl = Uri.parse(
+      "$domain/api/method/frappe.model.utils.user_settings.save",
+    );
+
+    Map<String, String> reqBody = {
+      'doctype': doctype,
+      'user_settings':
+          '{"updated_on":"Sun Apr 27 2025 11:50:46 GMT+0300","last_view":"List","List":{"filters":[${filter.value}],"sort_by":"modified","sort_order":"asc"}}',
+    };
+
+    final response = await session.post(reportViewUrl, body: reqBody);
+    Map<String, dynamic> data = jsonDecode(response.body);
+
+    if (data["message"].statusCode == 200) {
+      List<List<String>> filters = List<List<String>>.from(
+        jsonDecode(data["message"]),
+      );
+      return filters;
+    } else {
+      return [];
+    }
   }
 }

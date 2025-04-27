@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:moi_app/src/features/authentication/controllers/home_controller.dart';
+import 'package:moi_app/src/features/authentication/screens/list_view_screen/list_view_screen.dart';
 
 class HomePage extends StatelessWidget {
   HomePage({super.key});
@@ -43,7 +44,16 @@ class HomePage extends StatelessWidget {
         return ListView.builder(
           itemCount: items.length,
           itemBuilder: (context, index) {
-            return ListTile(title: Text(items[index]['link_to'].toString()));
+            return ListTile(
+              title: Text(items[index]['link_to'].toString()),
+              onTap: () {
+                Get.to(
+                  () => ListViewScreen(
+                    doctype: items[index]['link_to'].toString(),
+                  ),
+                );
+              },
+            );
           },
         );
       },
