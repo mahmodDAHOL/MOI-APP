@@ -6,6 +6,7 @@ import 'package:moi_app/src/utils/theme/theme.dart';
 
 import 'src/features/authentication/controllers/shared_preferences_controller.dart';
 import 'src/features/authentication/screens/list_view_screen/list_view_screen.dart';
+import 'src/features/authentication/screens/home/home_page.dart';
 import 'src/utils/helper.dart';
 
 void main() async {
@@ -46,7 +47,7 @@ class App extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       defaultTransition: Transition.leftToRightWithFade,
       transitionDuration: const Duration(milliseconds: 500),
-      home: ListViewScreen(doctype: 'item',),
+      home: HomePage(),
     );
   }
 }

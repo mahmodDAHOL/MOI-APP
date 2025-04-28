@@ -7,9 +7,14 @@ import '../../../utils/helper.dart';
 class ListViewController extends GetxController {
   final session = Get.find<Session>();
   final String domain = 'https://mooii.erpnext.com';
+  final List<String> options = ['20', '100', '500', '2500'];
+  RxList<dynamic> isSelected = [true, false, false, false].obs;
 
   // Observable filter variable
   var filter = ''.obs;
+  int getSelectedIndex() {
+    return isSelected.indexWhere((element) => element == true);
+  }
 
   Future<List<Map<String, dynamic>>?> getReportView(
     String doctype,
@@ -37,13 +42,14 @@ class ListViewController extends GetxController {
         filterList = '';
       }
 
+      int index = isSelected.indexWhere((element) => element == true);
       Map<String, String> reqBody = {
         'doctype': doctype,
         'fields': fields,
         'filters': '[$filterList]', // Use the filter value here
         'order_by': '`tab$doctype`.`modified` desc',
         'start': '0',
-        'page_length': '20',
+        'page_length': options[index],
         'view': 'List',
         'group_by': '',
         'with_comment_count': '1',
@@ -51,25 +57,28 @@ class ListViewController extends GetxController {
 
       final response = await session.post(reportViewUrl, body: reqBody);
       Map<String, dynamic> data = jsonDecode(response.body);
+      if (data["message"] != null && data["message"].isNotEmpty) {
+        List<String> keys = List<String>.from(data["message"]["keys"]);
+        keys = keys.map((item) => item.replaceAll('_', ' ')).toList();
 
-      List<String> keys = List<String>.from(data["message"]["keys"]);
-      keys = keys.map((item) => item.replaceAll('_', ' ')).toList();
+        List<List<dynamic>> values = List<List<dynamic>>.from(
+          data["message"]["values"],
+        );
 
-      List<List<dynamic>> values = List<List<dynamic>>.from(
-        data["message"]["values"],
-      );
+        List<Map<String, dynamic>> listOfMaps = [];
 
-      List<Map<String, dynamic>> listOfMaps = [];
-
-      for (var row in values) {
-        Map<String, dynamic> map = {};
-        for (int i = 0; i < keys.length; i++) {
-          map[keys[i].toString()] = row[i];
+        for (var row in values) {
+          Map<String, dynamic> map = {};
+          for (int i = 0; i < keys.length; i++) {
+            map[keys[i].toString()] = row[i];
+          }
+          listOfMaps.add(map);
         }
-        listOfMaps.add(map);
-      }
 
-      return listOfMaps;
+        return listOfMaps;
+      } else {
+        return [];
+      }
     } else {
       return null;
     }
@@ -107,30 +116,6 @@ class ListViewController extends GetxController {
           }).toList();
 
       return defaultFields;
-    }
-  }
-
-  Future<List<List<String>>> filterReportView(String doctype) async {
-    final reportViewUrl = Uri.parse(
-      "$domain/api/method/frappe.model.utils.user_settings.save",
-    );
-
-    Map<String, String> reqBody = {
-      'doctype': doctype,
-      'user_settings':
-          '{"updated_on":"Sun Apr 27 2025 11:50:46 GMT+0300","last_view":"List","List":{"filters":[${filter.value}],"sort_by":"modified","sort_order":"asc"}}',
-    };
-
-    final response = await session.post(reportViewUrl, body: reqBody);
-    Map<String, dynamic> data = jsonDecode(response.body);
-
-    if (data["message"].statusCode == 200) {
-      List<List<String>> filters = List<List<String>>.from(
-        jsonDecode(data["message"]),
-      );
-      return filters;
-    } else {
-      return [];
     }
   }
 }

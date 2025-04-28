@@ -15,35 +15,37 @@ class ListViewScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("List View")),
-      body: Column(
-        children: [
-          // Add a filter TextField at the top
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: filterController,
-              decoration: InputDecoration(
-                labelText: "Filter",
-                border: OutlineInputBorder(),
-                suffixIcon: IconButton(
-                  icon: Icon(Icons.clear),
-                  onPressed: () {
-                    // Clear the filter text
-                    filterController.clear();
-                  },
+      body: Obx(() {
+        return Column(
+          children: [
+            // Add a filter TextField at the top
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                controller: filterController,
+                decoration: InputDecoration(
+                  labelText: "Filter",
+                  border: OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.clear),
+                    onPressed: () {
+                      // Clear the filter text
+                      filterController.clear();
+                      listViewController.filter.value = "";
+                    },
+                  ),
                 ),
+                onChanged: (value) {
+                  // Update the filter value in the controller
+                  listViewController.filter.value = value;
+                },
               ),
-              onChanged: (value) {
-                // Update the filter value in the controller
-                listViewController.filter.value = value;
-              },
             ),
-          ),
 
-          // Main content: SingleChildScrollView with FutureBuilder
-          Expanded(
-            child: Obx(() {
-              return SingleChildScrollView(
+            // Main content: SingleChildScrollView with FutureBuilder
+            SizedBox(height: 20),
+            Expanded(
+              child: SingleChildScrollView(
                 child: FutureBuilder<List<Map<String, dynamic>>?>(
                   future: listViewController.getReportView(
                     doctype,
@@ -96,11 +98,49 @@ class ListViewScreen extends StatelessWidget {
                     }
                   },
                 ),
-              );
-            }),
-          ),
-        ],
-      ),
+              ),
+            ),
+            SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 40),
+              child: ToggleButtons(
+                borderRadius: BorderRadius.circular(8),
+                borderWidth: 0.5,
+                borderColor: Colors.blue,
+                selectedBorderColor: Colors.green,
+                selectedColor: Colors.white,
+                fillColor: Colors.green,
+                color: Colors.black,
+                isSelected: List<bool>.from(listViewController.isSelected),
+                onPressed: (int index) {
+                  for (
+                    int i = 0;
+                    i < listViewController.isSelected.length;
+                    i++
+                  ) {
+                    listViewController.isSelected[i] =
+                        (i ==
+                            index); // Set true for the selected index, false for others
+                  }
+                },
+                children:
+                    listViewController.options.map((String option) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        child: Text(
+                          option,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      );
+                    }).toList(),
+              ),
+            ),
+          ],
+        );
+      }),
     );
   }
 }
