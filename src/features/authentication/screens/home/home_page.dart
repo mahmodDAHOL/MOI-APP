@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:moi_app/src/features/authentication/controllers/home_controller.dart';
 import 'package:moi_app/src/features/authentication/screens/list_view_screen/list_view_screen.dart';
+import 'package:moi_app/src/features/authentication/screens/login/login_screen.dart';
+
+import '../../controllers/shared_preferences_controller.dart';
 
 class HomePage extends StatelessWidget {
   HomePage({super.key});
   final HomeController homeController = Get.put(HomeController());
+  final sharedPreferencesController = Get.put(SharedPreferencesController());
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +21,28 @@ class HomePage extends StatelessWidget {
 
     return SafeArea(
       child: Scaffold(
-        appBar: AppBar(title: Text("Home")),
+        appBar: AppBar(
+          title: Row(
+            children: [
+              Icon(Icons.home, size: 28),
+              SizedBox(width: 8),
+              Text("Home", style: TextStyle(fontSize: 20)),
+              Spacer(),
+
+              IconButton(
+                icon: Icon(Icons.logout, color: Colors.white),
+                onPressed: () async {
+                  final prefs = await sharedPreferencesController.prefs;
+                  DateTime now = DateTime.now();
+                  prefs.setString('expirationDate', now.toString());
+                  Get.off(LoginScreen());
+                },
+              ),
+
+              SizedBox(width: 8),
+            ],
+          ),
+        ),
         bottomNavigationBar: Obx(() {
           return homeController.bottomNavigationBar;
         }),
