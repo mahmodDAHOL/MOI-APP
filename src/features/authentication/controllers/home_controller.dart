@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../utils/helper.dart';
+import 'shared_preferences_controller.dart';
 
 class HomeController extends GetxController {
   RxInt myIndex = 0.obs;
+  final sharedPreferencesController = Get.put(SharedPreferencesController());
 
   Future<Map<String, dynamic>?> fetchDesktopPageElements() async {
-    return await getDesktopPage('https://mooii.erpnext.com');
+    final prefs = await sharedPreferencesController.prefs;
+    final String? domain = prefs.getString("domain");
+    return await getDesktopPage(domain!);
   }
 
   BottomNavigationBar get bottomNavigationBar => BottomNavigationBar(

@@ -78,26 +78,6 @@ Future<Map<String, dynamic>?> getDesktopPage(String domain) async {
   }
 }
 
-Future<bool> login(
-  Session session,
-  String domain,
-  String username,
-  String password,
-) async {
-  final loginUrl = Uri.parse("$domain/api/method/login");
-  final loginResponse = await session.post(
-    loginUrl,
-    body: {"usr": username, "pwd": password},
-  );
-
-  if (loginResponse.statusCode == 200) {
-    print("Login successful.");
-    return true;
-  } else {
-    print("Login failed with status code: ${loginResponse.statusCode}");
-    return false;
-  }
-}
 
 String? extractCsrfToken(String htmlContent) {
   final document = parser.parse(htmlContent);

@@ -5,9 +5,11 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 
 import '../screens/forget_password_otp/otp_screen.dart';
+import 'shared_preferences_controller.dart';
 
 class ForgetPasswordController extends GetxController {
   TextEditingController emailController = TextEditingController();
+  final sharedPreferencesController = Get.put(SharedPreferencesController());
 
   void forgetPassword() async {
     if (emailController.text.isNotEmpty) {
@@ -15,25 +17,11 @@ class ForgetPasswordController extends GetxController {
         'cmd': 'frappe.core.doctype.user.user.reset_password',
         'user': emailController.text,
       };
+      final prefs = await sharedPreferencesController.prefs;
+      final String? domain = prefs.getString("domain");
+
       var response = await http.post(
-        Uri.parse("https://mooii.erpnext.com/"),
-        headers: {
-          'User-Agent':
-              'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:137.0) Gecko/20100101 Firefox/137.0',
-          'Accept': 'application/json, */*; q=0.01',
-          'Accept-Language': 'en-US,en;q=0.5',
-          'Referer': 'https://mooii.erpnext.com/',
-          "Content-Type": "application/json",
-          'X-Frappe-CSRF-Token': 'None',
-          'X-Frappe-CMD': 'frappe.core.doctype.user.user.reset_password',
-          'X-Requested-With': 'XMLHttpRequest',
-          'Origin': 'https://mooii.erpnext.com',
-          'Connection': 'keep-alive',
-          'Sec-Fetch-Dest': 'empty',
-          'Sec-Fetch-Mode': 'cors',
-          'Sec-Fetch-Site': 'same-origin',
-          'Priority': 'u=0',
-        },
+        Uri.parse(domain!),
         body: jsonEncode(reqBody),
       );
       if (response.statusCode == 200) {

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -10,57 +11,71 @@ import 'shared_preferences_controller.dart';
 class LoginController extends GetxController {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
+  TextEditingController domainController = TextEditingController();
   final session = Get.find<Session>();
   final sharedPreferencesController = Get.put(SharedPreferencesController());
-  final String domain = 'https://mooii.erpnext.com';
+
+  Future<bool> urlExists(String url) async =>
+      (await (HttpClient()
+          .getUrl(Uri.parse(url))
+          .then((req) => req.close()))).statusCode ==
+      HttpStatus.ok;
 
   void loginUser() async {
     final prefs = await sharedPreferencesController.prefs;
-    if (emailController.text.isNotEmpty && passwordController.text.isNotEmpty) {
-      if (!await login(
-        session,
-        domain,
-        emailController.text,
-        passwordController.text,
-      )) {
-        return;
-      }
-
-      final dashboardUrl = Uri.parse("$domain/desk");
-      final dashboardResponse = await session.get(dashboardUrl);
-
-      if (dashboardResponse.statusCode == 200) {
-        final htmlContent = dashboardResponse.body;
-
-        final csrfToken = extractCsrfToken(htmlContent);
-        if (csrfToken == null) {
-          print("CSRF token not found in the HTML.");
-          return;
-        }
-
-        // Store CSRF token in session headers and SharedPreferences
-        session.headers['X-Frappe-CSRF-Token'] = csrfToken;
-        String headersencoded = json.encode(session.headers);
-        prefs.setString('headers', headersencoded);
-        await prefs.setString('csrf_token', csrfToken); // Save CSRF token
-        String expirationDateStr =
-            session.headers['Cookie']!
-                .split(";")
-                .map((e) => e.trim())
-                .toList()[1];
-        await prefs.setString(
-          'expirationDate',
-          expirationDateStr,
-        ); // Save CSRF token
-
-        Get.to(() => HomePage());
-      } else {
-        print(
-          "Failed to fetch dashboard page. Status code: ${dashboardResponse.statusCode}",
+    String domain = domainController.text;
+    final exists = await urlExists(domain);
+    if (exists) {
+      if (emailController.text.isNotEmpty &&
+          passwordController.text.isNotEmpty) {
+        final loginUrl = Uri.parse("$domain/api/method/login");
+        final loginResponse = await session.post(
+          loginUrl,
+          body: {"usr": emailController.text, "pwd": passwordController.text},
         );
+        if (loginResponse.statusCode == 200) {
+          final dashboardUrl = Uri.parse("$domain/desk");
+          session.headers['X-Frappe-CSRF-Token'] = 'None';
+          final dashboardResponse = await session.get(dashboardUrl);
+
+          if (dashboardResponse.statusCode == 200) {
+            final htmlContent = dashboardResponse.body;
+
+            final csrfToken = extractCsrfToken(htmlContent);
+            if (csrfToken == null) {
+              print("CSRF token not found in the HTML.");
+              return;
+            }
+
+            // Store CSRF token in session headers and SharedPreferences
+            session.headers['X-Frappe-CSRF-Token'] = csrfToken;
+            String headersencoded = json.encode(session.headers);
+            prefs.setString('headers', headersencoded);
+            await prefs.setString('csrf_token', csrfToken);
+            String expirationDateStr =
+                session.headers['Cookie']!
+                    .split(";")
+                    .map((e) => e.trim())
+                    .toList()[1];
+            await prefs.setString('expirationDate', expirationDateStr);
+            await prefs.setString('loggedin', 'true');
+            await prefs.setString('domain', domain);
+            Get.to(() => HomePage());
+          } else {
+            print(
+              "Failed to fetch dashboard page. Status code: ${dashboardResponse.statusCode}",
+            );
+          }
+        } else {
+          print(
+            "Failed to fetch dashboard page. Status code: ${loginResponse.statusCode}",
+          );
+        }
+      } else {
+        print("Email and password cannot be empty.");
       }
     } else {
-      print("Email and password cannot be empty.");
+      print("domain is not exist.");
     }
   }
 

@@ -3,10 +3,12 @@ import 'dart:convert';
 import 'package:get/get.dart';
 
 import '../../../utils/helper.dart';
+import 'shared_preferences_controller.dart';
 
 class ListViewController extends GetxController {
   final session = Get.find<Session>();
-  final String domain = 'https://mooii.erpnext.com';
+  final sharedPreferencesController = Get.put(SharedPreferencesController());
+
   final List<String> options = ['20', '100', '500', '2500'];
   RxList<dynamic> isSelected = [true, false, false, false].obs;
 
@@ -20,6 +22,9 @@ class ListViewController extends GetxController {
     String doctype,
     String filter,
   ) async {
+    final prefs = await sharedPreferencesController.prefs;
+    final String? domain = prefs.getString("domain");
+
     final reportViewUrl = Uri.parse(
       "$domain/api/method/frappe.desk.reportview.get",
     );
@@ -85,6 +90,8 @@ class ListViewController extends GetxController {
   }
 
   Future<List<Map<String, dynamic>>?> getListviewFields(String doctype) async {
+    final prefs = await sharedPreferencesController.prefs;
+    final String? domain = prefs.getString("domain");
     final reportViewUrl = Uri.parse(
       "$domain/api/method/frappe.desk.listview.get_list_settings",
     );
