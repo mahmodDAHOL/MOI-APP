@@ -3,12 +3,11 @@ import 'dart:convert';
 import 'package:get/get.dart';
 
 import '../../../utils/helper.dart';
-import '../models/doctype_model.dart';
+import '../models/field_type_model.dart';
 import '../models/form_field_model.dart';
 import '../screens/list_view_screen/list_view_screen.dart';
 import 'shared_preferences_controller.dart';
 
-enum FieldType { text, date, select, check, link, tabBreak, table, unknown }
 
 class FormController extends GetxController {
   final session = Get.find<Session>();
@@ -20,10 +19,7 @@ class FormController extends GetxController {
   var tablesData = {}.obs;
   List<FormFieldData> fields = [];
 
-  Future<List<List<FormFieldData>>> getFormLayout(
-    String doctype,
-    bool fullForm,
-  ) async {
+  Future<Map<String, dynamic>> getFormLayoutData(String doctype) async {
     final prefs = await sharedPreferencesController.prefs;
     final String? domain = prefs.getString("domain");
 
@@ -43,28 +39,48 @@ class FormController extends GetxController {
 
     final response = await session.post(reportViewUrl, body: reqBody);
     Map<String, dynamic> data = jsonDecode(response.body);
-    List<List<FormFieldData>> listOfDocs = [];
+    return data;
+  }
 
+  Future<Map<String, List<FormFieldData>>> getFormLayout(
+    String doctype,
+    bool fullForm,
+  ) async {
+    final prefs = await sharedPreferencesController.prefs;
+    if (prefs.getString('$fullForm tabs') != null) {
+      Map<String, List<FormFieldData>> tabs = decodeFormFieldsMap(
+        prefs.getString('$fullForm tabs')!,
+      );
+      return tabs;
+    }
+    Map<String, dynamic> data = await getFormLayoutData(doctype);
     if (data["docs"] != null && data["docs"].isNotEmpty) {
       var docsList = data["docs"];
+      Map<String, List<FormFieldData>> tabs = await getTabs(
+        doctype,
+        docsList,
+        0,
+        fullForm,
+      );
 
-      for (int i = 0; i < docsList.length; i++) {
-        List<FormFieldData> fields = await getFields(
-          doctype,
-          docsList,
-          i,
-          fullForm,
-        );
-        listOfDocs.add(fields);
-      }
-
-      return listOfDocs;
+      // for (int i = 0; i < docsList.length; i++) {
+      //   Map<String, List<FormFieldData>> fields = await getFields(
+      //     doctype,
+      //     docsList,
+      //     i,
+      //     fullForm,
+      //   );
+      //   tabs.add(fields);
+      // }
+      String tabssencoded = encodeFormFieldsMap(tabs);
+      prefs.setString('$fullForm tabs', tabssencoded);
+      return tabs;
     } else {
-      return [];
+      return {};
     }
   }
 
-  Future<List<FormFieldData>> getFields(
+  Future<Map<String, List<FormFieldData>>> getTabs(
     String referenceDoctype,
     var doctypeData,
     int indexOfFfield,
@@ -84,22 +100,62 @@ class FormController extends GetxController {
       indexOfFfield,
     );
     int tableIndex = 0;
+    Map<String, List<FormFieldData>> formTabs = {};
     List<FormFieldData> fields = [];
+    int tabBreakCount = 0;
+    String? previousTabName;
+
     for (var fieldName in fieldsOrder) {
+      if (fullForm){
+        
+      
       final fieldMeta = fieldMap[fieldName] ?? {};
       final String fieldTypeStr = fieldMeta['fieldtype'] ?? 'Unknown';
+
       FormFieldData field = await getFormFieldsData(
         fieldName,
         fieldMeta,
         tableIndex,
       );
+
       if (fieldTypeStr == "Table") {
         // tableIndex++;
         // tablesData[field.fieldName] = [];
       }
+
+      if (fieldTypeStr == "Tab Break") {
+        tabBreakCount++;
+
+        if (tabBreakCount > 1 && previousTabName != null) {
+          formTabs[previousTabName] = fields;
+          fields = []; // Reset for new section
+        } else {
+          // First Tab Break → reset fields
+          fields = [];
+        }
+
+        previousTabName = field.fieldName; // Save current tab name
+      }
+      fields.add(field);
+    }else{ // fullForm is false
+      if (fieldName==null) continue;
+        final fieldMeta = fieldMap[fieldName] ?? {};
+        FormFieldData field = await getFormFieldsData(
+        fieldName,
+        fieldMeta,
+        tableIndex,
+      );
       fields.add(field);
     }
-    return fields;
+    }
+    if (fullForm){
+    // After loop: add last section if any
+    if (tabBreakCount >= 1 && previousTabName != null && fields.isNotEmpty) {
+      formTabs[previousTabName] = fields;
+    }}else{
+      formTabs['Main Form'] = fields;
+    }
+    return formTabs;
   }
 
   Future<FormFieldData> getFormFieldsData(
@@ -110,40 +166,40 @@ class FormController extends GetxController {
     final String fieldTypeStr = fieldMeta['fieldtype'] ?? 'Unknown';
     final prefs = await sharedPreferencesController.prefs;
     final String? owner = prefs.getString("login_email");
-    if (fieldTypeStr == "Table") {
-      Map<String, dynamic> data = fieldMeta['data'];
-      final FieldType fieldType = _parseFieldType(fieldTypeStr);
-      TableDoctypeData tableDoctypeData = TableDoctypeData(
-        docstatus: 0,
-        doctype: fieldMeta['options'],
-        name: "new-uom-conversion-detail-wipzjudtsj",
-        owner: '$owner',
-        parent: "new-item-idekfywkco",
-        parentfield: fieldMeta['fieldname'],
-        parenttype: fieldMeta['parent'],
-        idx: tableIndex + 1,
-      );
-      try {
-        return FormFieldData(
-          fieldName: fieldName,
-          type: fieldType,
-          label: fieldMeta['label'] ?? fieldName,
-          options: fieldMeta['options'],
-          data: data,
-          tableIndex: tableIndex,
-          tableDoctypeData: tableDoctypeData,
-        );
-      } catch (e) {
-        return FormFieldData(
-          fieldName: fieldName,
-          type: fieldType,
-          label: fieldMeta['label'] ?? fieldName,
-          options: null,
-          tableIndex: tableIndex,
-          tableDoctypeData: tableDoctypeData,
-        );
-      }
-    }
+    // if (fieldTypeStr == "Table") {
+    //   Map<String, dynamic> data = fieldMeta['data'];
+    //   final FieldType fieldType = _parseFieldType(fieldTypeStr);
+    //   TableDoctypeData tableDoctypeData = TableDoctypeData(
+    //     docstatus: 0,
+    //     doctype: fieldMeta['options'],
+    //     name: "new-uom-conversion-detail-wipzjudtsj",
+    //     owner: '$owner',
+    //     parent: "new-item-idekfywkco",
+    //     parentfield: fieldMeta['fieldname'],
+    //     parenttype: fieldMeta['parent'],
+    //     idx: tableIndex + 1,
+    //   );
+    //   try {
+    //     return FormFieldData(
+    //       fieldName: fieldName,
+    //       type: fieldType,
+    //       label: fieldMeta['label'] ?? fieldName,
+    //       options: fieldMeta['options'],
+    //       data: data,
+    //       tableIndex: tableIndex,
+    //       tableDoctypeData: tableDoctypeData,
+    //     );
+    //   } catch (e) {
+    //     return FormFieldData(
+    //       fieldName: fieldName,
+    //       type: fieldType,
+    //       label: fieldMeta['label'] ?? fieldName,
+    //       options: null,
+    //       tableIndex: tableIndex,
+    //       tableDoctypeData: tableDoctypeData,
+    //     );
+    //   }
+    // }
 
     final FieldType fieldType = _parseFieldType(fieldTypeStr);
 

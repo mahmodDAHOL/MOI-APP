@@ -5,6 +5,8 @@ import 'package:get/get.dart';
 import 'package:html/parser.dart' as parser;
 import 'package:http/http.dart' as http;
 
+import '../features/authentication/models/form_field_model.dart';
+
 class Session {
   Map<String, String> headers = {};
 
@@ -78,7 +80,6 @@ Future<Map<String, dynamic>?> getDesktopPage(String domain) async {
     return null;
   }
 }
-
 
 String? extractCsrfToken(String htmlContent) {
   final document = parser.parse(htmlContent);
@@ -203,7 +204,7 @@ void showAutoDismissDialog(BuildContext context, String message) {
           TextButton(
             onPressed: Navigator.of(context).pop,
             child: Text("Close"),
-          )
+          ),
         ],
       );
     },
@@ -211,7 +212,9 @@ void showAutoDismissDialog(BuildContext context, String message) {
 }
 
 Map<String, dynamic> getElementsAfterKey(
-    Map<String, dynamic> map, String targetKey) {
+  Map<String, dynamic> map,
+  String targetKey,
+) {
   // Convert keys to list to access by index
   final List<String> keys = map.keys.toList();
 
@@ -233,4 +236,23 @@ Map<String, dynamic> getElementsAfterKey(
   }
 
   return result;
+}
+
+String encodeFormFieldsMap(Map<String, List<FormFieldData>> map) {
+  final encodedMap = map.map((key, value) {
+    final encodedList = value.map((field) => field.toMap()).toList();
+    return MapEntry(key, encodedList);
+  });
+
+  return jsonEncode(encodedMap);
+}
+
+Map<String, List<FormFieldData>> decodeFormFieldsMap(String jsonString) {
+  final parsedMap = jsonDecode(jsonString) as Map<String, dynamic>;
+
+  return parsedMap.map((key, value) {
+    final List<dynamic> list = value as List<dynamic>;
+    final fields = list.map((item) => FormFieldData.fromJson(item)).toList();
+    return MapEntry(key, fields);
+  });
 }

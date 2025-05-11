@@ -32,4 +32,30 @@ class TableDoctypeData {
       'idx': idx,
     };
   }
+
+  factory TableDoctypeData.fromJson(Map<String, dynamic> json) {
+    if (json.isEmpty) {
+      return TableDoctypeData(
+        docstatus: 0,
+        doctype: "",
+        name: "",
+        owner: "",
+        parent: "",
+        parentfield: "",
+        parenttype: "",
+        idx: 0,
+      );
+    } else {
+      return TableDoctypeData(
+        docstatus: json['docstatus'],
+        doctype: json['doctype'],
+        name: json['name'],
+        owner: json['owner'],
+        parent: json['parent'],
+        parentfield: json['parentfield'],
+        parenttype: json['parenttype'],
+        idx: json['idx'],
+      );
+    }
+  }
 }

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:moi_app/src/common_widgets/form/collapsable_list_widget.dart';
 
-import '../../../../common_widgets/form/table.dart';
 import '../../controllers/form_controller.dart';
+import '../../models/field_type_model.dart';
 import '../../models/form_field_model.dart';
 
 class DynamicForm extends StatelessWidget {
@@ -16,33 +17,66 @@ class DynamicForm extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Dynamic Form")),
-      body: FutureBuilder<List<List<FormFieldData>>>(
+      body: FutureBuilder<Map<String, List<FormFieldData>>>(
         future: controller.getFormLayout(doctype, fullForm),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text("Error: ${snapshot.error}"));
-          } else if (snapshot.hasData) {
-            return ListView.builder(
-              itemCount:
-                  snapshot.data![0].length + 1, // Add 1 for the extra widget
-              itemBuilder: (context, index) {
-                List<List<FormFieldData>> listOfDocs = snapshot.data!;
-                if (index < snapshot.data![0].length) {
-                  final field = snapshot.data![0][index];
-
-                  return _buildFieldWidget(listOfDocs, field, controller, context);
-                } else if (!fullForm) {
-                  return TextButton(
-                    onPressed: () {
-                      Get.to(DynamicForm(doctype: doctype, fullForm: true));
-                    },
-                    child: Text("Edit full form"),
-                  );
-                }
-              },
+            return Center(
+              child: Text("Error: ${snapshot.error}\n\n${snapshot.stackTrace}"),
             );
+          } else if (snapshot.hasData) {
+            Map<String, List<FormFieldData>> tabs = snapshot.data!;
+            if (fullForm) {
+              return ListView(
+                children: [
+                  ...tabs.entries.map((tabEntry) {
+                    return CollapsibleWidget(
+                      header: tabEntry.key,
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemCount: tabEntry.value.length,
+                        itemBuilder: (context, fieldIndex) {
+                          return _buildFieldWidget(
+                            tabEntry.value[fieldIndex],
+                            controller,
+                            context,
+                          );
+                        },
+                      ),
+                    );
+                  }),
+
+                  // Add extra button at the end if needed
+                  if (!fullForm)
+                    TextButton(
+                      onPressed: () {
+                        Get.to(DynamicForm(doctype: doctype, fullForm: true));
+                      },
+                      child: Text("Edit full form"),
+                    ),
+                ],
+              );
+            } else {
+              return CollapsibleWidget(
+                      header: tabs.keys.first,
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemCount: tabs.values.single.length,
+                        itemBuilder: (context, fieldIndex) {
+                          FormFieldData field = tabs.values.single[fieldIndex];
+                          return _buildFieldWidget(
+                            field,
+                            controller,
+                            context,
+                          );
+                        },
+                      ),
+                    ); // fullForm is false
+            }
           } else {
             return Center(child: Text("No fields found"));
           }
@@ -66,7 +100,7 @@ class DynamicForm extends StatelessWidget {
   }
 
   Widget _buildFieldWidget(
-    List<List<FormFieldData>> listOfDocs,
+    // List<List<FormFieldData>> listOfDocs,
     FormFieldData field,
     FormController controller,
     BuildContext context,
@@ -207,27 +241,14 @@ class DynamicForm extends StatelessWidget {
             ),
           );
         });
-      case FieldType.tabBreak:
-        return ListTile(
-          title: Text(
-            field.label ?? field.fieldName,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 18.0,
-              fontWeight: FontWeight.bold,
-              color: Colors.green,
-            ),
-          ),
-          tileColor: Colors.grey[200], // Background color for section header
-        );
-      case FieldType.table:
-        List<FormFieldData> tableFields = listOfDocs[field.tableIndex+1]; //+1 for skip first item (parent doctype)
-        return TableWithAddButton(
-          doctype: field.options!,
-          tableFields: tableFields,
-          field:field
-        );
 
+      // case FieldType.table:
+      //   List<FormFieldData> tableFields = listOfDocs[field.tableIndex+1]; //+1 for skip first item (parent doctype)
+      //   return TableWithAddButton(
+      //     doctype: field.options!,
+      //     tableFields: tableFields,
+      //     field:field
+      //   );
 
       default:
         return Text(field.fieldName, style: TextStyle(color: Colors.red));
