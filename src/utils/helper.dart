@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:html/parser.dart' as parser;
 import 'package:http/http.dart' as http;
@@ -163,4 +164,73 @@ DateTime? parseCustomDate(String dateString) {
     print("Error parsing date: $e");
     return null;
   }
+}
+
+/// Zips a list of lists into a list of lists where each sublist contains
+/// the i-th elements from each input list (stops at the shortest list).
+List<List<dynamic>> zip(List<List<dynamic>> lists) {
+  if (lists.isEmpty) return [];
+
+  // Get the minimum length among all lists
+  int minLength = lists
+      .map((list) => list.length)
+      .reduce((a, b) => a < b ? a : b); // ✅ Correct way to find minimum
+
+  List<List<dynamic>> result = [];
+
+  for (int i = 0; i < minLength; i++) {
+    List<dynamic> row = [];
+    for (List<dynamic> list in lists) {
+      row.add(list[i]);
+    }
+    result.add(row);
+  }
+
+  return result;
+}
+
+void showAutoDismissDialog(BuildContext context, String message) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      Future.delayed(Duration(seconds: 3), () {
+        Navigator.of(context).pop(); // Close dialog
+      });
+      return AlertDialog(
+        title: Text("Notice"),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: Navigator.of(context).pop,
+            child: Text("Close"),
+          )
+        ],
+      );
+    },
+  );
+}
+
+Map<String, dynamic> getElementsAfterKey(
+    Map<String, dynamic> map, String targetKey) {
+  // Convert keys to list to access by index
+  final List<String> keys = map.keys.toList();
+
+  // Find the index of the target key
+  final int keyIndex = keys.indexOf(targetKey);
+
+  // If key not found or it's the last key, return empty map
+  if (keyIndex == -1 || keyIndex == keys.length - 1) {
+    return {};
+  }
+
+  // Get the keys that come after the target key
+  final List<String> keysAfterTarget = keys.sublist(keyIndex + 1);
+
+  // Build the resulting map
+  final Map<String, dynamic> result = {};
+  for (final String key in keysAfterTarget) {
+    result[key] = map[key];
+  }
+
+  return result;
 }

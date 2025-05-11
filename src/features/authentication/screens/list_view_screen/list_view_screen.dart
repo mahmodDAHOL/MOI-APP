@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:moi_app/src/features/authentication/controllers/list_view_controller.dart';
+
+import '../../controllers/form_controller.dart';
+import '../../controllers/list_view_controller.dart';
+import '../form_screen/form_screen.dart';
 
 class ListViewScreen extends StatelessWidget {
   ListViewScreen({super.key, required this.doctype});
 
   final ListViewController listViewController = Get.put(ListViewController());
+  final FormController formController = Get.put(FormController());
   final String doctype;
 
   // Controller for the filter TextField
@@ -14,7 +18,26 @@ class ListViewScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("List View")),
+      appBar: AppBar(
+        title: Row(
+          mainAxisAlignment:
+              MainAxisAlignment
+                  .spaceBetween, // Ensures the Row doesn't take full width
+          children: [
+            Text(doctype),
+            InkWell(
+              onTap: () {
+                Get.to(DynamicForm(doctype: doctype, fullForm: false));
+              },
+              borderRadius: BorderRadius.circular(20), // Optional
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Icon(Icons.add, size: 37),
+              ),
+            ),
+          ],
+        ),
+      ),
       body: Obx(() {
         return Column(
           children: [

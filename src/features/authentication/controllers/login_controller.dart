@@ -52,6 +52,7 @@ class LoginController extends GetxController {
             String headersencoded = json.encode(session.headers);
             prefs.setString('headers', headersencoded);
             await prefs.setString('csrf_token', csrfToken);
+            await prefs.setString('login_email', emailController.text);
             String expirationDateStr =
                 session.headers['Cookie']!
                     .split(";")
