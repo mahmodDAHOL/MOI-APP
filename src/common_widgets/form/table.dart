@@ -61,14 +61,8 @@ class TableWithAddButton extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: ElevatedButton(
                 onPressed: () {
-                  var tableData = field.tableDoctypeData!.toMap();
-                  for (var tableField in tableFields) {
-                    tableData.addAll({tableField.fieldName: ""});
-                  }
-                  controller.tablesData[field.fieldName].add(tableData);
-                  controller.tablesData.refresh();
                   controller.tableRowValues[field.fieldName].add(
-                    getElementsAfterKey(tableData, 'idx'),
+                    getInitialRow(tableFields),
                   );
                   controller.tableRowValues.refresh();
                 },
@@ -82,6 +76,8 @@ class TableWithAddButton extends StatelessWidget {
   }
 
   TableRow GetTableRow(List<dynamic> row, int rowIndex) {
+    var tableData = field.tableDoctypeData!.toMap();
+
     return TableRow(
       children:
           row
@@ -96,7 +92,7 @@ class TableWithAddButton extends StatelessWidget {
                         onChanged: (text) {
                           String fieldName = field.fieldName;
 
-                          // Get the full row (a map, e.g., { "name": "John", "role": "Dev" })
+                          // Get the full row (a map, e.g., { "tableFieldName1": "tabeFieldValue1", "tableFieldName2": "tabeFieldValue2", })
                           var row =
                               controller.tableRowValues[fieldName]![rowIndex];
 
@@ -104,8 +100,11 @@ class TableWithAddButton extends StatelessWidget {
                           var mutableRow = Map<String, dynamic>.from(row);
 
                           // Get all keys in order to find the correct column
-                          var keys = row.keys.toList(); // ["name", "role"]
-                          var keyToUpdate = keys[colIndex]; // e.g., "name"
+                          var keys =
+                              row.keys
+                                  .toList(); // ["tableFieldName1", "tableFieldName2"]
+                          var keyToUpdate =
+                              keys[colIndex]; // e.g., "tableFieldName1"
 
                           // Update value
                           mutableRow[keyToUpdate] = text;
@@ -113,11 +112,13 @@ class TableWithAddButton extends StatelessWidget {
                           // Replace the old row with updated one
                           controller.tableRowValues[fieldName]![rowIndex] =
                               mutableRow;
+                          mutableRow.addAll(tableData);
+                          controller.tablesData[fieldName]!.add(mutableRow);
 
-                          // Notify UI
-                          controller.tableRowValues.refresh();
+                          // // Notify UI
+                          // controller.tableRowValues.refresh();
+                          // controller.tablesData.refresh();
 
-                          // controller.tablesData[fieldName].add(controller.tableRowValues);
                         },
                         textAlign: TextAlign.center,
                         controller: TextEditingController(text: value),
