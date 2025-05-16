@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:moi_app/src/common_widgets/form/collapsable_list_widget.dart';
 
+import '../../../../common_widgets/form/table.dart';
 import '../../controllers/form_controller.dart';
 import '../../models/field_type_model.dart';
 import '../../models/form_field_model.dart';
@@ -100,7 +101,6 @@ class DynamicForm extends StatelessWidget {
   }
 
   Widget _buildFieldWidget(
-    // List<List<FormFieldData>> listOfDocs,
     FormFieldData field,
     FormController controller,
     BuildContext context,
@@ -232,9 +232,7 @@ class DynamicForm extends StatelessWidget {
           return ListTile(
             title: Text(field.label ?? field.fieldName),
             trailing: Checkbox(
-              value:
-                  controller.formValues[field.fieldName] == 1 ||
-                  controller.formValues[field.fieldName] == true,
+              value: controller.formValues[field.fieldName] == "true",
               onChanged: (value) {
                 controller.formValues[field.fieldName] = value.toString();
               },
@@ -242,13 +240,13 @@ class DynamicForm extends StatelessWidget {
           );
         });
 
-      // case FieldType.table:
-      //   List<FormFieldData> tableFields = listOfDocs[field.tableIndex+1]; //+1 for skip first item (parent doctype)
-      //   return TableWithAddButton(
-      //     doctype: field.options!,
-      //     tableFields: tableFields,
-      //     field:field
-      //   );
+      case FieldType.table:
+        List<FormFieldData>? tableFields = field.data;
+        return TableWithAddButton(
+          doctype: field.options!,
+          tableFields: tableFields!,
+          field:field
+        );
 
       default:
         return Text(field.fieldName, style: TextStyle(color: Colors.red));

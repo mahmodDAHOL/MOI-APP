@@ -251,8 +251,19 @@ Map<String, List<FormFieldData>> decodeFormFieldsMap(String jsonString) {
   final parsedMap = jsonDecode(jsonString) as Map<String, dynamic>;
 
   return parsedMap.map((key, value) {
-    final List<dynamic> list = value as List<dynamic>;
-    final fields = list.map((item) => FormFieldData.fromJson(item)).toList();
+    if (value is! List) {
+      throw FormatException("Expected List for key '$key', got ${value.runtimeType}");
+    }
+
+    final List<dynamic> list = value;
+    final fields = list.map((item) {
+      if (item is! Map<String, dynamic>) {
+        throw FormatException("Expected Map<String, dynamic>, got ${item.runtimeType}");
+      }
+
+      return FormFieldData.fromJson(item);
+    }).toList();
+
     return MapEntry(key, fields);
   });
 }

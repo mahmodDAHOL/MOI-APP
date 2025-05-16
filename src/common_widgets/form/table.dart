@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import '../../features/authentication/controllers/form_controller.dart';
 import '../../features/authentication/models/form_field_model.dart';
+import '../../utils/helper.dart';
 
 class TableWithAddButton extends StatelessWidget {
   TableWithAddButton({
@@ -11,7 +12,7 @@ class TableWithAddButton extends StatelessWidget {
     required this.tableFields,
     required this.field,
   });
-  final FormController controller = Get.put(FormController());
+  final FormController controller = Get.find();
 
   final String doctype;
   final List<FormFieldData> tableFields;
@@ -19,7 +20,8 @@ class TableWithAddButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // return Obx(() {
+    return Obx(() {
+      print(field.fieldName);
       return Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
@@ -42,21 +44,15 @@ class TableWithAddButton extends StatelessWidget {
                           return TableCell(
                             child: Center(
                               child: Text(
-                                field.label ?? field.fieldName,
+                                field.fieldName.replaceAll('_', " "),
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                             ),
                           );
                         }).toList(),
                   ),
-                  
-                  // ...controller.tablesData[field.fieldName]?.asMap.entries.map(
-                  //   (entry) {
-                  //     int rowIndex = entry.key;
-                  //     Map<String, String> row = entry.value;
-                  //     return GetTableRow(row, rowIndex);
-                  //   },
-                  // ),
+
+                  ...getTableRows(controller.tableRowValues[field.fieldName]),
                 ],
               ),
             ),
@@ -64,14 +60,17 @@ class TableWithAddButton extends StatelessWidget {
             Align(
               alignment: Alignment.centerLeft,
               child: ElevatedButton(
-
                 onPressed: () {
                   var tableData = field.tableDoctypeData!.toMap();
-                  for (var field in tableFields) {
-                    tableData.addAll({field.fieldName: ""});
+                  for (var tableField in tableFields) {
+                    tableData.addAll({tableField.fieldName: ""});
                   }
-                  controller.tablesData[field.fieldName] = tableData;
+                  controller.tablesData[field.fieldName].add(tableData);
                   controller.tablesData.refresh();
+                  controller.tableRowValues[field.fieldName].add(
+                    getElementsAfterKey(tableData, 'idx'),
+                  );
+                  controller.tableRowValues.refresh();
                 },
                 child: const Text('Add Row'),
               ),
@@ -79,13 +78,13 @@ class TableWithAddButton extends StatelessWidget {
           ],
         ),
       );
-    // });
+    });
   }
 
-  TableRow GetTableRow(Map<String, String> row, int rowIndex) {
+  TableRow GetTableRow(List<dynamic> row, int rowIndex) {
     return TableRow(
       children:
-          (row as List<String>)
+          row
               .asMap()
               .map((colIndex, value) {
                 return MapEntry(
@@ -95,10 +94,30 @@ class TableWithAddButton extends StatelessWidget {
                       padding: const EdgeInsets.all(1),
                       child: TextField(
                         onChanged: (text) {
-                          // controller.tableRows[field
-                          //         .tableIndex][rowIndex][colIndex] =
-                          //     text;
-                          // controller.tableRows.refresh();
+                          String fieldName = field.fieldName;
+
+                          // Get the full row (a map, e.g., { "name": "John", "role": "Dev" })
+                          var row =
+                              controller.tableRowValues[fieldName]![rowIndex];
+
+                          // Convert row to mutable map if it's immutable
+                          var mutableRow = Map<String, dynamic>.from(row);
+
+                          // Get all keys in order to find the correct column
+                          var keys = row.keys.toList(); // ["name", "role"]
+                          var keyToUpdate = keys[colIndex]; // e.g., "name"
+
+                          // Update value
+                          mutableRow[keyToUpdate] = text;
+
+                          // Replace the old row with updated one
+                          controller.tableRowValues[fieldName]![rowIndex] =
+                              mutableRow;
+
+                          // Notify UI
+                          controller.tableRowValues.refresh();
+
+                          // controller.tablesData[fieldName].add(controller.tableRowValues);
                         },
                         textAlign: TextAlign.center,
                         controller: TextEditingController(text: value),
@@ -113,5 +132,15 @@ class TableWithAddButton extends StatelessWidget {
               .values
               .toList(),
     );
+  }
+
+  List<TableRow> getTableRows(List<dynamic> tableFields) {
+    List<TableRow> TableRows =
+        tableFields.asMap().entries.map((entry) {
+          int rowIndex = entry.key;
+          Map<String, dynamic> row = entry.value;
+          return GetTableRow(row.values.toList(), rowIndex);
+        }).toList();
+    return TableRows;
   }
 }
