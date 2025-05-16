@@ -1,4 +1,4 @@
-enum FieldType { text, date, select, check, link, tabBreak, table, unknown }
+enum FieldType { text, date, select, check, link, tabBreak, table, image, unknown }
 
 // Convert enum to String
 String fieldTypeToString(FieldType type) {
@@ -6,23 +6,31 @@ String fieldTypeToString(FieldType type) {
 }
 
 // Convert String to enum
-FieldType tringToFieldType(String? typeName) {
-  switch (typeName) {
-    case 'text':
-      return FieldType.text;
-    case 'date':
-      return FieldType.date;
-    case 'select':
-      return FieldType.select;
-    case 'check':
-      return FieldType.check;
-    case 'link':
-      return FieldType.link;
-    case 'tabBreak':
-      return FieldType.tabBreak;
-    case 'table':
-      return FieldType.table;
-    default:
-      return FieldType.unknown;
-  }
+FieldType stringToFieldType(String? typeName) {
+    switch (typeName) {
+      case 'Date':
+        return FieldType.date;
+      case 'Select':
+        return FieldType.select;
+      case 'Link':
+        return FieldType.link;
+      case 'Check':
+        return FieldType.check;
+      case 'Text':
+      case 'Small Text':
+      case 'Text Editor':
+      case 'Float':
+      case 'Int':
+      case 'Currency':
+      case 'Data':
+        return FieldType.text;
+      case 'Tab Break':
+        return FieldType.tabBreak;
+      case 'Table':
+        return FieldType.table;
+      case 'Attach Image':
+        return FieldType.image;
+      default:
+        return FieldType.unknown;
+    }
 }

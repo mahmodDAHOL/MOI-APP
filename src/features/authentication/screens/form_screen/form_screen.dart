@@ -62,21 +62,17 @@ class DynamicForm extends StatelessWidget {
               );
             } else {
               return CollapsibleWidget(
-                      header: tabs.keys.first,
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
-                        itemCount: tabs.values.single.length,
-                        itemBuilder: (context, fieldIndex) {
-                          FormFieldData field = tabs.values.single[fieldIndex];
-                          return _buildFieldWidget(
-                            field,
-                            controller,
-                            context,
-                          );
-                        },
-                      ),
-                    ); // fullForm is false
+                header: tabs.keys.first,
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  itemCount: tabs.values.single.length,
+                  itemBuilder: (context, fieldIndex) {
+                    FormFieldData field = tabs.values.single[fieldIndex];
+                    return _buildFieldWidget(field, controller, context);
+                  },
+                ),
+              ); // fullForm is false
             }
           } else {
             return Center(child: Text("No fields found"));
@@ -245,7 +241,7 @@ class DynamicForm extends StatelessWidget {
         return TableWithAddButton(
           doctype: field.options!,
           tableFields: tableFields!,
-          field:field
+          field: field,
         );
 
       default:

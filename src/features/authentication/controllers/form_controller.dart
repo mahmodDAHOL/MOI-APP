@@ -15,10 +15,8 @@ class FormController extends GetxController {
 
   RxMap formValues = {}.obs;
   RxBool isSubmitting = false.obs;
-  // RxMap<Map> tableRows = List.generate(100, (_) => {}).obs;
   RxMap<dynamic, dynamic> tablesData = {}.obs;
-  RxMap<dynamic, dynamic> tableRowValues = {}.obs;
-  List<FormFieldData> fields = [];
+  RxMap<dynamic, dynamic> tableRowValues = {}.obs; // rows for each table
 
   Future<Map<String, dynamic>> getFormLayoutData(String doctype) async {
     final prefs = await sharedPreferencesController.prefs;
@@ -47,13 +45,6 @@ class FormController extends GetxController {
     String doctype,
     bool fullForm,
   ) async {
-    final prefs = await sharedPreferencesController.prefs;
-    // if (prefs.getString('$fullForm tabs') != null) {
-    //   Map<String, List<FormFieldData>> tabs = decodeFormFieldsMap(
-    //     prefs.getString('$fullForm tabs')!,
-    //   );
-    //   return tabs;
-    // }
     Map<String, dynamic> data = await getFormLayoutData(doctype);
     if (data["docs"] != null && data["docs"].isNotEmpty) {
       var docsList = data["docs"];
@@ -64,17 +55,6 @@ class FormController extends GetxController {
         fullForm,
       );
 
-      // for (int i = 0; i < docsList.length; i++) {
-      //   Map<String, List<FormFieldData>> fields = await getFields(
-      //     doctype,
-      //     docsList,
-      //     i,
-      //     fullForm,
-      //   );
-      //   tabs.add(fields);
-      // }
-      // String tabssencoded = encodeFormFieldsMap(tabs);
-      // prefs.setString('$fullForm tabs', tabssencoded);
       return tabs;
     } else {
       return {};
@@ -87,30 +67,28 @@ class FormController extends GetxController {
     dynamic field,
     Map<String, dynamic> fieldMap,
   ) async {
-      for (var doc in doctypeData) {
-        if (doc['name'] == field['options']) {
-          List<dynamic> fieldsMeta = doc['fields'];
-          Map<String, dynamic> tablefieldMap = {};
-          for (var field in fieldsMeta) {
-            final tableFieldName = field["fieldname"];
+    for (var doc in doctypeData) {
+      if (doc['name'] == field['options']) {
+        List<dynamic> fieldsMeta = doc['fields'];
+        Map<String, dynamic> tablefieldMap = {};
+        for (var field in fieldsMeta) {
+          final tableFieldName = field["fieldname"];
 
-            if (field['fieldtype'] == "Select" &&
-                field.containsKey('options')) {
-              try {
-                field['options'] = field['options'].split("\n");
-              } catch (e) {
-                field['options'] =
-                    []; // item barcode type doesn't return options
-              }
+          if (field['fieldtype'] == "Select" && field.containsKey('options')) {
+            try {
+              field['options'] = field['options'].split("\n");
+            } catch (e) {
+              field['options'] = []; // item barcode type doesn't return options
             }
-            if (field['fieldtype'] == "Link") {
-              field['options'] = await searchLink(field['options'], doctype);
-            }
-            tablefieldMap[tableFieldName] = field;
           }
-          field['data'] = tablefieldMap;
+          if (field['fieldtype'] == "Link") {
+            field['options'] = await searchLink(field['options'], doctype);
+          }
+          tablefieldMap[tableFieldName] = field;
         }
+        field['data'] = tablefieldMap;
       }
+    }
     return field;
   }
 
@@ -204,7 +182,7 @@ class FormController extends GetxController {
     Map<String, dynamic> dataMap = fieldMeta['data'];
 
     final String fieldTypeStr = fieldMeta['fieldtype'] ?? 'Unknown';
-    final FieldType fieldType = _parseFieldType(fieldTypeStr);
+    final FieldType fieldType = stringToFieldType(fieldTypeStr);
     TableDoctypeData tableDoctypeData = TableDoctypeData(
       docstatus: 0,
       doctype: fieldMeta['options'],
@@ -215,18 +193,18 @@ class FormController extends GetxController {
       parenttype: fieldMeta['parent'],
       idx: tableIndex + 1,
     );
-    List<FormFieldData> data = dataMap.entries
-    .map((entry) { 
-      return FormFieldData(
-          fieldName: entry.key, 
-          type: _parseFieldType(entry.value['fieldtype']),
-          label: fieldMeta['label'] ?? entry.key,
-          options: fieldMeta['options'],
-          data: entry.value,
-          tableIndex: tableIndex,
-          tableDoctypeData: tableDoctypeData,
-        );})
-    .toList();
+    List<FormFieldData> data =
+        dataMap.entries.map((entry) {
+          return FormFieldData(
+            fieldName: entry.key,
+            type: stringToFieldType(entry.value['fieldtype']),
+            label: fieldMeta['label'] ?? entry.key,
+            options: fieldMeta['options'],
+            data: entry.value,
+            tableIndex: tableIndex,
+            tableDoctypeData: tableDoctypeData,
+          );
+        }).toList();
 
     try {
       return FormFieldData(
@@ -261,7 +239,7 @@ class FormController extends GetxController {
       return getTableFormFieldsData(fieldName, fieldMeta, tableIndex);
     }
 
-    final FieldType fieldType = _parseFieldType(fieldTypeStr);
+    final FieldType fieldType = stringToFieldType(fieldTypeStr);
 
     try {
       return FormFieldData(
@@ -332,33 +310,6 @@ class FormController extends GetxController {
     return fieldMap;
   }
 
-  FieldType _parseFieldType(String typeStr) {
-    switch (typeStr) {
-      case 'Date':
-        return FieldType.date;
-      case 'Select':
-        return FieldType.select;
-      case 'Link':
-        return FieldType.link;
-      case 'Check':
-        return FieldType.check;
-      case 'Text':
-      case 'Small Text':
-      case 'Text Editor':
-      case 'Float':
-      case 'Int':
-      case 'Currency':
-      case 'Data':
-        return FieldType.text;
-      case 'Tab Break':
-        return FieldType.tabBreak;
-      case 'Table':
-        return FieldType.table;
-      default:
-        return FieldType.unknown;
-    }
-  }
-
   Future<List<String>> searchLink(
     String doctype,
     String referenceDoctype,
@@ -412,25 +363,12 @@ class FormController extends GetxController {
       "owner": owner,
       "__run_link_triggers": 1,
     };
-    formValues = tableRowValues;
-    // tableRows.map((table) {
-    // {
-    //       "docstatus": 0,
-    //       "doctype": "UOM Conversion Detail", ####
-    //       "name": "new-uom-conversion-detail-wipzjudtsj", ####
-    //       "__islocal": 1,
-    //       "__unsaved": 1,
-    //       "owner": $owner,
-    //       "parent": "new-item-idekfywkco",  ####
-    //       "parentfield": "uoms",
-    //       "parenttype": $doctype,
-    //       "idx": 1,
-    //       "__unedited": false,
-    //       "uom": null,
-    //       "conversion_factor": 222
-    //   }
-    // });
-    Map<String, dynamic> fullDoc = {...jsonReq, ...formValues};
+
+    Map<String, dynamic> fullDoc = {
+      ...jsonReq,
+      ...tableRowValues,
+      ...formValues,
+    };
 
     String docJson = jsonEncode(fullDoc);
     Map<String, String> reqBody = {'doc': docJson};
