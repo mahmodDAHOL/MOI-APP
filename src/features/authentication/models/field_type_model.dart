@@ -5,9 +5,10 @@ String fieldTypeToString(FieldType type) {
   return type.toString().split('.').last;
 }
 
+
 // Convert String to enum
 FieldType stringToFieldType(String? typeName) {
-    switch (typeName) {
+    switch (typeName?.capitalize()) {
       case 'Date':
         return FieldType.date;
       case 'Select':
@@ -33,4 +34,10 @@ FieldType stringToFieldType(String? typeName) {
       default:
         return FieldType.unknown;
     }
+}
+
+extension StringExtensions on String {
+  String capitalize() {
+    return "${this[0].toUpperCase()}${this.substring(1)}";
+  }
 }

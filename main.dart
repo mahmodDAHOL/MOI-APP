@@ -46,7 +46,7 @@ class App extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       defaultTransition: Transition.leftToRightWithFade,
       transitionDuration: const Duration(milliseconds: 500),
-      home: DynamicForm(doctype: "Item", fullForm: false),
+      home: DynamicForm(doctype: "Item", fullForm: true),
     );
   }
 }

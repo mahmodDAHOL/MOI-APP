@@ -20,7 +20,7 @@ class TableDoctypeData {
   });
 
   // ✅ Convert to Map
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toJson() {
     return {
       'docstatus': docstatus,
       'doctype': doctype,

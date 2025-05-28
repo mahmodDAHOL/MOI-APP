@@ -24,7 +24,30 @@ class FormFieldData {
     this.tableDoctypeData,
   });
 
-  Map<String, dynamic> toMap() {
+  // 👇 Add this copyWith method
+  FormFieldData copyWith({
+    String? fieldName,
+    FieldType? type,
+    String? label,
+    dynamic options,
+    dynamic defaultValue,
+    dynamic data,
+    dynamic tableIndex,
+    TableDoctypeData? tableDoctypeData,
+  }) {
+    return FormFieldData(
+      fieldName: fieldName ?? this.fieldName,
+      type: type ?? this.type,
+      label: label ?? this.label,
+      options: options ?? this.options,
+      defaultValue: defaultValue ?? this.defaultValue,
+      data: data ?? this.data,
+      tableIndex: tableIndex ?? this.tableIndex,
+      tableDoctypeData: tableDoctypeData ?? this.tableDoctypeData,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
     return {
       'fieldName': fieldName,
       'type': fieldTypeToString(type),
@@ -33,17 +56,26 @@ class FormFieldData {
       'defaultValue': defaultValue,
       'data': data,
       'tableIndex': tableIndex,
-      'tableDoctypeData': tableDoctypeData?.toMap() ?? {},
+      'tableDoctypeData': tableDoctypeData?.toJson() ?? {},
     };
   }
-    factory FormFieldData.fromJson(Map<String, dynamic> json) {
+
+  factory FormFieldData.fromJson(Map<String, dynamic> json) {
     return FormFieldData(
-      fieldName: json['fieldName'],
+      fieldName: json['fieldName'] ?? "",
       type: stringToFieldType(json['type']),
       label: json['label'],
       options: json['options'],
       defaultValue: json['defaultValue'],
-      data: json['data'],
+      data:
+          json['data'] is List
+              ? (json['data'] as List)
+                  .map(
+                    (item) =>
+                        FormFieldData.fromJson(item as Map<String, dynamic>),
+                  )
+                  .toList()
+              : json['data'], // fallback if not a list
       tableIndex: json['tableIndex'],
       tableDoctypeData: TableDoctypeData.fromJson(json['tableDoctypeData']),
     );

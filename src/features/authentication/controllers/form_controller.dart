@@ -46,6 +46,22 @@ class FormController extends GetxController {
     bool fullForm,
   ) async {
     Map<String, dynamic> data = await getFormLayoutData(doctype);
+    final prefs = await sharedPreferencesController.prefs;
+
+    String? tabsAsString = prefs.getString('tabs $doctype $fullForm');
+    if (tabsAsString != null) {
+      Map<String, List<FormFieldData>> tabs = decodeFormFieldsMap(tabsAsString);
+      for (var tab in tabs.values) {
+        for (var field in tab) {
+          if (field.type == FieldType.table) {
+            tablesData[field.fieldName] = [];
+            tableRowValues[field.fieldName] = [];
+          }
+        }
+      }
+      return tabs;
+    }
+
     if (data["docs"] != null && data["docs"].isNotEmpty) {
       var docsList = data["docs"];
       Map<String, List<FormFieldData>> tabs = await getTabs(
@@ -54,7 +70,7 @@ class FormController extends GetxController {
         0,
         fullForm,
       );
-
+      prefs.setString('tabs $doctype $fullForm', encodeFormFieldsMap(tabs));
       return tabs;
     } else {
       return {};
@@ -145,7 +161,7 @@ class FormController extends GetxController {
             fields = [];
           }
 
-          previousTabName = field.fieldName; // Save current tab name
+          previousTabName = field.label; // Save current tab name
           continue;
         }
         fields.add(field);
@@ -200,6 +216,7 @@ class FormController extends GetxController {
             type: stringToFieldType(entry.value['fieldtype']),
             label: fieldMeta['label'] ?? entry.key,
             options: fieldMeta['options'],
+            defaultValue: fieldMeta['default'],
             data: entry.value,
             tableIndex: tableIndex,
             tableDoctypeData: tableDoctypeData,
@@ -212,6 +229,7 @@ class FormController extends GetxController {
         type: fieldType,
         label: fieldMeta['label'] ?? fieldName,
         options: fieldMeta['options'],
+        defaultValue: fieldMeta['default'],
         data: data,
         tableIndex: tableIndex,
         tableDoctypeData: tableDoctypeData,
@@ -222,6 +240,7 @@ class FormController extends GetxController {
         type: fieldType,
         label: fieldMeta['label'] ?? fieldName,
         options: null,
+        defaultValue: fieldMeta['default'],
         tableIndex: tableIndex,
         tableDoctypeData: tableDoctypeData,
       );
@@ -247,6 +266,7 @@ class FormController extends GetxController {
         type: fieldType,
         label: fieldMeta['label'] ?? fieldName,
         options: fieldMeta['options'],
+        defaultValue: fieldMeta['default'],
       );
     } catch (e) {
       return FormFieldData(
@@ -254,6 +274,7 @@ class FormController extends GetxController {
         type: fieldType,
         label: fieldMeta['label'] ?? fieldName,
         options: null,
+        defaultValue: fieldMeta['default'],
       );
     }
   }

@@ -24,8 +24,8 @@ class LoginController extends GetxController {
   void loginUser() async {
     final prefs = await sharedPreferencesController.prefs;
     String domain = domainController.text;
-    final exists = await urlExists(domain);
-    if (exists) {
+    // final exists = await urlExists(domain);
+    // if (exists) {
       if (emailController.text.isNotEmpty &&
           passwordController.text.isNotEmpty) {
         final loginUrl = Uri.parse("$domain/api/method/login");
@@ -75,9 +75,9 @@ class LoginController extends GetxController {
       } else {
         print("Email and password cannot be empty.");
       }
-    } else {
-      print("domain is not exist.");
-    }
+    // } else {
+    //   print("domain is not exist.");
+    // }
   }
 
   // Function to load saved session token (optional)

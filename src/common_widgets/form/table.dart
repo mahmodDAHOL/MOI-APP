@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../features/authentication/controllers/form_controller.dart';
+import '../../features/authentication/models/field_type_model.dart';
 import '../../features/authentication/models/form_field_model.dart';
+import '../../features/authentication/screens/form_screen/form_screen.dart';
 import '../../utils/helper.dart';
 
 class TableWithAddButton extends StatelessWidget {
@@ -35,24 +37,12 @@ class TableWithAddButton extends StatelessWidget {
                 defaultColumnWidth: const FixedColumnWidth(150.0),
 
                 children: [
-                  TableRow(
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300], // Gray background for header row
-                    ),
-                    children:
-                        tableFields.map((field) {
-                          return TableCell(
-                            child: Center(
-                              child: Text(
-                                field.fieldName.replaceAll('_', " "),
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                  ),
+                  getTableHeader(context, tableFields),
 
-                  ...getTableRows(controller.tableRowValues[field.fieldName]),
+                  ...getTableRows(
+                    field.fieldName,
+                    context,
+                  ),
                 ],
               ),
             ),
@@ -75,57 +65,46 @@ class TableWithAddButton extends StatelessWidget {
     });
   }
 
-  TableRow GetTableRow(List<dynamic> row, int rowIndex) {
-    var tableData = field.tableDoctypeData!.toMap();
+  TableRow GetTableRow(
+    String tableFieldName,
+    Map<String, dynamic> row,
+    int rowIndex,
+    BuildContext context,
+  ) {
+    List<dynamic> rowValues = row.values.toList();
+    var tableData = field.tableDoctypeData!.toJson();
+    List tableFields =
+        field.data.map((tablefield) {
+          if (tablefield.type == FieldType.link) {
+            if (tablefield.options.runtimeType == String) {
+              tablefield = tablefield.copyWith(
+                options: controller.searchLink(
+                  tablefield.data['label'],
+                  doctype,
+                ),
+              );
+            }
+          }
+          return tablefield;
+        }).toList();
 
     return TableRow(
       children:
-          row
+          rowValues
               .asMap()
               .map((colIndex, value) {
                 return MapEntry(
                   colIndex,
                   TableCell(
-                    child: Padding(
-                      padding: const EdgeInsets.all(1),
-                      child: TextField(
-                        onChanged: (text) {
-                          String fieldName = field.fieldName;
-
-                          // Get the full row (a map, e.g., { "tableFieldName1": "tabeFieldValue1", "tableFieldName2": "tabeFieldValue2", })
-                          var row =
-                              controller.tableRowValues[fieldName]![rowIndex];
-
-                          // Convert row to mutable map if it's immutable
-                          var mutableRow = Map<String, dynamic>.from(row);
-
-                          // Get all keys in order to find the correct column
-                          var keys =
-                              row.keys
-                                  .toList(); // ["tableFieldName1", "tableFieldName2"]
-                          var keyToUpdate =
-                              keys[colIndex]; // e.g., "tableFieldName1"
-
-                          // Update value
-                          mutableRow[keyToUpdate] = text;
-
-                          // Replace the old row with updated one
-                          controller.tableRowValues[fieldName]![rowIndex] =
-                              mutableRow;
-                          mutableRow.addAll(tableData);
-                          controller.tablesData[fieldName]!.add(mutableRow);
-
-                          // // Notify UI
-                          // controller.tableRowValues.refresh();
-                          // controller.tablesData.refresh();
-
-                        },
-                        textAlign: TextAlign.center,
-                        controller: TextEditingController(text: value),
-                        decoration: const InputDecoration(
-                          border: InputBorder.none,
-                        ),
-                      ),
+                    child: _buildFieldWidget(
+                      tableFieldName,
+                      tableFields[colIndex],
+                      rowIndex,
+                      colIndex,
+                      tableData,
+                      value,
+                      controller,
+                      context,
                     ),
                   ),
                 );
@@ -135,13 +114,163 @@ class TableWithAddButton extends StatelessWidget {
     );
   }
 
-  List<TableRow> getTableRows(List<dynamic> tableFields) {
+  List<TableRow> getTableRows(String tableFieldName, BuildContext context) {
+    List<dynamic> tableFields = controller.tableRowValues[tableFieldName];
     List<TableRow> TableRows =
         tableFields.asMap().entries.map((entry) {
           int rowIndex = entry.key;
           Map<String, dynamic> row = entry.value;
-          return GetTableRow(row.values.toList(), rowIndex);
+          return GetTableRow(tableFieldName, row, rowIndex, context);
         }).toList();
     return TableRows;
+  }
+
+  TableRow getTableHeader(BuildContext context, List tableFields) {
+    List<TableCell> tableFieldsName =
+        tableFields.map<TableCell>((field) {
+          return TableCell(
+            child: Center(
+              child: Text(
+                field.fieldName.replaceAll('_', " "),
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ),
+          );
+        }).toList();
+    return TableRow(
+      decoration: BoxDecoration(
+        color: Colors.grey[300], // Gray background for header row
+      ),
+      children: tableFieldsName,
+    );
+  }
+
+  Widget _buildFieldWidget(
+    String tableFieldName,
+    FormFieldData field,
+    rowIndex,
+    colIndex,
+    tableData,
+    value,
+    FormController controller,
+    BuildContext context,
+  ) {
+    switch (field.type) {
+      case FieldType.text:
+        return Padding(
+          padding: const EdgeInsets.all(1),
+          child: TextField(
+            onChanged: (text) {
+              Map<String, dynamic> mutableRow = editTableRow(
+                tableFieldName,
+                controller.tableRowValues,
+                rowIndex,
+                colIndex,
+                text,
+              );
+              tableData.addAll(mutableRow);
+
+              controller.tablesData[tableFieldName]!.add(tableData);
+
+              controller.tableRowValues.refresh();
+              controller.tablesData.refresh();
+            },
+            
+            textAlign: TextAlign.center,
+            controller: TextEditingController(text: value),
+            decoration: const InputDecoration(border: InputBorder.none),
+          ),
+        );
+      case FieldType.select:
+        return Obx(() {
+          return ListTile(
+            title: Text(field.data['label'] ?? field.data['fieldName']),
+            subtitle: Text(
+              controller.formValues[field.fieldName]?.toString() ??
+                  "Select Option",
+            ),
+            trailing: Icon(Icons.arrow_drop_down),
+            onTap: () {
+              showModalBottomSheet(
+                context: context,
+                builder: (context) {
+                  return ListView(children: getSelectOptions(field));
+                },
+              );
+            },
+          );
+        });
+      case FieldType.link:
+        return Obx(() {
+          return ListTile(
+            title: Text(field.label ?? field.fieldName),
+            subtitle: Text(
+              controller.formValues[field.fieldName]?.toString() ??
+                  "Select Option",
+            ),
+            trailing: Icon(Icons.arrow_drop_down),
+            onTap: () async {
+              List<String> options = await field.options!;
+              showModalBottomSheet(
+                context: context,
+                builder: (context) {
+                  return ListView(
+                    padding: EdgeInsets.zero,
+                    children: [
+                      ListTile(
+                        title: Text(
+                          "Select an option",
+                          textAlign: TextAlign.center,
+                        ),
+                        onTap: () {},
+                      ),
+
+                      ...options.map((option) {
+                        return ListTile(
+                          title: Text(option),
+                          onTap: () {
+                            controller.formValues[field.fieldName] =
+                                option.toString();
+                            Get.back();
+                          },
+                        );
+                      }),
+
+                      ListTile(
+                        title: Row(
+                          children: [
+                            Icon(Icons.add, size: 20),
+                            Text("Create a new ${field.label}"),
+                          ],
+                        ),
+                        onTap: () {
+                          Get.to(
+                            DynamicForm(doctype: field.label!, fullForm: false),
+                          );
+                        },
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          );
+        });
+      default:
+        return Text(field.fieldName, style: TextStyle(color: Colors.red));
+      // return SizedBox(height: 1,);
+    }
+  }
+
+  List<Widget> getSelectOptions(field) {
+    return (field.data['options'] ?? []).map<Widget>((option) {
+      return ListTile(
+        title: Text(option),
+        onTap: () {
+          controller.formValues[field.fieldName] = option.toString();
+          Get.back();
+        },
+      );
+    }).toList();
   }
 }

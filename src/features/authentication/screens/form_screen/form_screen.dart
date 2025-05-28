@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:moi_app/src/common_widgets/form/collapsable_list_widget.dart';
 
 import '../../../../common_widgets/form/table.dart';
+import '../../../../utils/helper.dart';
 import '../../controllers/form_controller.dart';
 import '../../models/field_type_model.dart';
 import '../../models/form_field_model.dart';
@@ -49,15 +50,6 @@ class DynamicForm extends StatelessWidget {
                       ),
                     );
                   }),
-
-                  // Add extra button at the end if needed
-                  if (!fullForm)
-                    TextButton(
-                      onPressed: () {
-                        Get.to(DynamicForm(doctype: doctype, fullForm: true));
-                      },
-                      child: Text("Edit full form"),
-                    ),
                 ],
               );
             } else {
@@ -66,10 +58,19 @@ class DynamicForm extends StatelessWidget {
                 child: ListView.builder(
                   shrinkWrap: true,
                   physics: NeverScrollableScrollPhysics(),
-                  itemCount: tabs.values.single.length,
+                  itemCount: tabs.values.single.length + 1,
                   itemBuilder: (context, fieldIndex) {
-                    FormFieldData field = tabs.values.single[fieldIndex];
-                    return _buildFieldWidget(field, controller, context);
+                    if (fieldIndex < tabs.values.single.length) {
+                      FormFieldData field = tabs.values.single[fieldIndex];
+                      return _buildFieldWidget(field, controller, context);
+                    } else {
+                      return TextButton(
+                        onPressed: () {
+                          Get.to(DynamicForm(doctype: doctype, fullForm: true));
+                        },
+                        child: Text("Edit full form"),
+                      );
+                    }
                   },
                 ),
               ); // fullForm is false
@@ -101,17 +102,21 @@ class DynamicForm extends StatelessWidget {
     FormController controller,
     BuildContext context,
   ) {
+
     switch (field.type) {
       case FieldType.text:
-        return Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: TextField(
-            decoration: InputDecoration(labelText: field.label),
-            onChanged: (value) {
-              controller.formValues[field.fieldName] = value.toString();
-            },
-          ),
-        );
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: TextField(
+              decoration: InputDecoration(labelText: field.label),
+              controller: TextEditingController(
+                text: field.defaultValue?.toString() ?? controller.formValues[field.fieldName],
+              ),
+              onChanged: (value) {
+                controller.formValues[field.fieldName] = value.toString();
+              },
+            ),
+          );
 
       case FieldType.select:
         return Obx(() {
@@ -119,6 +124,7 @@ class DynamicForm extends StatelessWidget {
             title: Text(field.label ?? field.fieldName),
             subtitle: Text(
               controller.formValues[field.fieldName]?.toString() ??
+                  field.defaultValue ??
                   "Select Option",
             ),
             trailing: Icon(Icons.arrow_drop_down),
@@ -126,19 +132,7 @@ class DynamicForm extends StatelessWidget {
               showModalBottomSheet(
                 context: context,
                 builder: (context) {
-                  return ListView(
-                    children:
-                        (field.options ?? []).map((option) {
-                          return ListTile(
-                            title: Text(option),
-                            onTap: () {
-                              controller.formValues[field.fieldName] =
-                                  option.toString();
-                              Get.back();
-                            },
-                          );
-                        }).toList(),
-                  );
+                  return ListView(children: getSelectOptions(field));
                 },
               );
             },
@@ -151,6 +145,7 @@ class DynamicForm extends StatelessWidget {
             title: Text(field.label ?? field.fieldName),
             subtitle: Text(
               controller.formValues[field.fieldName]?.toString() ??
+                  field.defaultValue ??
                   "Select Option",
             ),
             trailing: Icon(Icons.arrow_drop_down),
@@ -178,7 +173,6 @@ class DynamicForm extends StatelessWidget {
                           },
                         );
                       }),
-
                       ListTile(
                         title: Row(
                           children: [
@@ -199,20 +193,27 @@ class DynamicForm extends StatelessWidget {
             },
           );
         });
+
       case FieldType.date:
         return Obx(() {
+          final selectedDate =
+              controller.formValues[field.fieldName] != null
+                  ? DateTime.tryParse(controller.formValues[field.fieldName]!)
+                  : null;
+
           return ListTile(
             title: Text(field.label ?? field.fieldName),
             subtitle: Text(
-              controller.formValues[field.fieldName]?.toString() ??
-                  "Select Date",
+              selectedDate != null
+                  ? "${selectedDate.year}-${selectedDate.month}-${selectedDate.day}"
+                  : field.defaultValue ?? "Select Date",
             ),
             trailing: Icon(Icons.calendar_today),
             onTap: () async {
+              final initialDate = selectedDate ?? DateTime.now();
               final picked = await showDatePicker(
                 context: context,
-                initialDate:
-                    controller.formValues[field.fieldName] ?? DateTime.now(),
+                initialDate: initialDate,
                 firstDate: DateTime(1900),
                 lastDate: DateTime(2100),
               );
@@ -225,10 +226,15 @@ class DynamicForm extends StatelessWidget {
 
       case FieldType.check:
         return Obx(() {
+          final bool isChecked =
+              toBool(controller.formValues[field.fieldName]) == true ||
+              (toBool(field.defaultValue) == true &&
+                  controller.formValues[field.fieldName] == null);
+
           return ListTile(
             title: Text(field.label ?? field.fieldName),
             trailing: Checkbox(
-              value: controller.formValues[field.fieldName] == "true",
+              value: isChecked,
               onChanged: (value) {
                 controller.formValues[field.fieldName] = value.toString();
               },
@@ -245,8 +251,22 @@ class DynamicForm extends StatelessWidget {
         );
 
       default:
-        return Text(field.fieldName, style: TextStyle(color: Colors.red));
-      // return SizedBox(height: 1,);
+        return Text(
+          "${field.fieldName} ${field.type} ",
+          style: TextStyle(color: Colors.red),
+        );
     }
+  }
+
+  List<Widget> getSelectOptions(field) {
+    return (field.options ?? []).map<Widget>((option) {
+      return ListTile(
+        title: Text(option),
+        onTap: () {
+          controller.formValues[field.fieldName] = option.toString();
+          Get.back();
+        },
+      );
+    }).toList();
   }
 }

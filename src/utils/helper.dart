@@ -240,7 +240,7 @@ Map<String, dynamic> getElementsAfterKey(
 
 String encodeFormFieldsMap(Map<String, List<FormFieldData>> map) {
   final encodedMap = map.map((key, value) {
-    final encodedList = value.map((field) => field.toMap()).toList();
+    final encodedList = value.map((field) => field.toJson()).toList();
     return MapEntry(key, encodedList);
   });
 
@@ -265,7 +265,10 @@ Map<String, List<FormFieldData>> decodeFormFieldsMap(String jsonString) {
               "Expected Map<String, dynamic>, got ${item.runtimeType}",
             );
           }
+        if (item['data']!=null){
 
+          return FormFieldData.fromJson(item);
+        }
           return FormFieldData.fromJson(item);
         }).toList();
 
@@ -279,4 +282,34 @@ Map<String, String> getInitialRow(List<FormFieldData> tableFields) {
     row[field.fieldName] = "";
   }
   return row;
+}
+
+Map<String, dynamic> editTableRow(
+  String tableFieldName,
+  tableRowValues,
+  rowIndex,
+  colIndex,
+  text,
+) {
+  // Get the full row (a map, e.g., { "tableFieldName1": "tabeFieldValue1", "tableFieldName2": "tabeFieldValue2", })
+  var row = tableRowValues[tableFieldName][rowIndex];
+
+  // Convert row to mutable map if it's immutable
+  var mutableRow = Map<String, dynamic>.from(row);
+
+  // Get all keys in order to find the correct column
+  var keys = row.keys.toList(); // ["tableFieldName1", "tableFieldName2"]
+  var keyToUpdate = keys[colIndex]; // e.g., "tableFieldName1"
+
+  // Update value
+  mutableRow[keyToUpdate] = text;
+
+  // Replace the old row with updated one
+  tableRowValues[tableFieldName]![rowIndex] = mutableRow;
+  return mutableRow;
+}
+
+bool toBool(String? value) {
+  if (value == null) return false;
+  return value == '1';
 }
