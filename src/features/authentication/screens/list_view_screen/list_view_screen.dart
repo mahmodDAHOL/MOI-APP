@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../utils/helper.dart';
 import '../../controllers/list_view_controller.dart';
 import '../form_screen/form_screen.dart';
 
@@ -81,40 +82,15 @@ class ListViewScreen extends StatelessWidget {
                       return Center(child: Text("No data available."));
                     } else {
                       List<Map<String, dynamic>> reportData = snapshot.data!;
-                      return SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: DataTable(
-                          columns:
-                              reportData.isNotEmpty
-                                  ? reportData.first.keys.map((key) {
-                                    return DataColumn(
-                                      label: Expanded(
-                                        child: Text(
-                                          key,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .headlineSmall
-                                              ?.copyWith(fontSize: 15),
-                                        ),
-                                      ),
-                                    );
-                                  }).toList()
-                                  : [],
-                          rows:
-                              reportData.map((item) {
-                                return DataRow(
-                                  cells:
-                                      item.entries.map((entry) {
-                                        return DataCell(
-                                          Text(
-                                            entry.value?.toString() ?? '',
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        );
-                                      }).toList(),
-                                );
-                              }).toList(),
-                        ),
+                      return Column(
+                        children: [
+                          Obx(() => _buildActionBar(context, reportData)),
+
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: getTable(context, reportData),
+                          ),
+                        ],
                       );
                     }
                   },
@@ -162,6 +138,97 @@ class ListViewScreen extends StatelessWidget {
           ],
         );
       }),
+    );
+  }
+
+  Widget _buildActionBar(
+    BuildContext context,
+    List<Map<String, dynamic>> reportData,
+  ) {
+    if (!listViewController.hasSelection) return SizedBox.shrink();
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: Colors.grey[300],
+      child: Row(
+        children: [
+          IconButton(
+            icon: Icon(Icons.edit),
+            onPressed: () {
+              if (listViewController.selectedRowIndices.length > 1) {
+                showAutoDismissDialog(context, "Select only one item");
+              } else {
+                // final selectedItem =
+                //     reportData[listViewController.selectedRowIndices.first];
+                // Get.to(
+                //   DynamicForm(
+                //     forEditing: true,
+                //     data: selectedItem,
+                //     admin: true,
+                //   ),
+                //   arguments: {'source': 'listview', 'oldID':selectedItem['id']},
+                // );
+              }
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.delete),
+            onPressed: () {
+              listViewController.deleteSelected(context, reportData, doctype);
+              listViewController.refreshed.value =
+                  !listViewController.refreshed.value;
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget getTable(context, reportData) {
+    return Obx(
+      () => DataTable(
+        columns: [
+          ...reportData.first.keys.map((key) {
+            return DataColumn(
+              label: Expanded(
+                child: Text(
+                  key,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.headlineSmall?.copyWith(fontSize: 15),
+                ),
+              ),
+            );
+          }).toList(),
+        ],
+        rows:
+            reportData
+                .asMap()
+                .map<int, DataRow>((int index, Map<String, dynamic> item) {
+                  return MapEntry<int, DataRow>(
+                    index,
+                    DataRow(
+                      selected: listViewController.selectedRowIndices.contains(
+                        index,
+                      ),
+                      onSelectChanged: (bool? selected) {
+                        listViewController.toggleSelection(index);
+                      },
+                      cells:
+                          item.entries.map<DataCell>((entry) {
+                            return DataCell(
+                              Text(
+                                entry.value?.toString() ?? '',
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            );
+                          }).toList(),
+                    ),
+                  );
+                })
+                .values
+                .toList(),
+      ),
     );
   }
 }

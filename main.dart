@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:moi_app/src/features/authentication/screens/list_view_screen/list_view_screen.dart';
 import 'package:moi_app/src/utils/theme/theme.dart';
 
 import 'src/features/authentication/controllers/shared_preferences_controller.dart';
@@ -46,7 +47,7 @@ class App extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       defaultTransition: Transition.leftToRightWithFade,
       transitionDuration: const Duration(milliseconds: 500),
-      home: DynamicForm(doctype: "Item", fullForm: true),
+      home: ListViewScreen(doctype: "Item"),
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../utils/helper.dart';
@@ -14,8 +15,59 @@ class ListViewController extends GetxController {
 
   // Observable filter variable
   var filter = ''.obs;
+  var refreshed = false.obs;
+
+  // Check if any row is selected
+  bool get hasSelection => selectedRowIndices.isNotEmpty;
+
   int getSelectedIndex() {
     return isSelected.indexWhere((element) => element == true);
+  }
+
+  // Track selected row indices
+  final selectedRowIndices = <int>[].obs;
+
+  // Toggle selection for a specific row
+  void toggleSelection(int index) {
+    if (selectedRowIndices.contains(index)) {
+      selectedRowIndices.remove(index);
+      selectedRowIndices.refresh();
+    } else {
+      selectedRowIndices.add(index);
+      selectedRowIndices.refresh();
+    }
+  }
+
+  // Clear all selections
+  void clearSelections() {
+    selectedRowIndices.clear();
+    selectedRowIndices.refresh();
+  }
+
+  // Delete selected rows
+  Future<void> deleteSelected(
+    BuildContext context,
+    List<Map<String, dynamic>> reportData,
+    String doctype,
+  ) async {
+    List<String> entriesToDelete =
+        selectedRowIndices.map<String>((idx) {
+          return reportData[idx]['item name'];
+        }).toList();
+    final prefs = await sharedPreferencesController.prefs;
+    final String? domain = prefs.getString("domain");
+    final reportViewUrl = Uri.parse(
+      "$domain/api/method/frappe.desk.reportview.delete_items",
+    );
+    String items = jsonEncode(entriesToDelete);
+    Map<String, String> reqBody = {'items': items, 'doctype': doctype};
+    final response = await session.post(reportViewUrl, body: reqBody);
+    if (response.statusCode != 200) {
+      String message = jsonDecode(response.body)['exception'];
+      showAutoDismissDialog(context, message);
+
+    }
+    clearSelections();
   }
 
   Future<List<Map<String, dynamic>>?> getReportView(
@@ -29,14 +81,14 @@ class ListViewController extends GetxController {
       "$domain/api/method/frappe.desk.reportview.get",
     );
 
-    List<Map<String, dynamic>>? ListviewFields = await getListviewFields(
+    List<Map<String, dynamic>>? listviewFields = await getListviewFields(
       doctype,
     );
 
-    if (ListviewFields != null) {
+    if (listviewFields != null) {
       // Use the filter value in the request
       String fields =
-          '["${ListviewFields.map((field) => "`tab$doctype`.`${field['fieldname']}`").join('","')}"]'
+          '["${listviewFields.map((field) => "`tab$doctype`.`${field['fieldname']}`").join('","')}"]'
               .replaceAll("status_field", "docstatus");
       String filterList;
       if (filter.isNotEmpty) {
