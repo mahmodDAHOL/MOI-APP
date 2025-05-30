@@ -39,10 +39,7 @@ class TableWithAddButton extends StatelessWidget {
                 children: [
                   getTableHeader(context, tableFields),
 
-                  ...getTableRows(
-                    field.fieldName,
-                    context,
-                  ),
+                  ...getTableRows(field.fieldName, context),
                 ],
               ),
             ),
@@ -175,7 +172,7 @@ class TableWithAddButton extends StatelessWidget {
               controller.tableRowValues.refresh();
               controller.tablesData.refresh();
             },
-            
+
             textAlign: TextAlign.center,
             controller: TextEditingController(text: value),
             decoration: const InputDecoration(border: InputBorder.none),
@@ -245,7 +242,11 @@ class TableWithAddButton extends StatelessWidget {
                         ),
                         onTap: () {
                           Get.to(
-                            DynamicForm(doctype: field.label!, fullForm: false),
+                            () => DynamicForm(
+                              doctype: field.label!,
+                              fullForm: false,
+                              forEditing: false,
+                            ),
                           );
                         },
                       ),

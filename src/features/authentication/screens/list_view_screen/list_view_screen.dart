@@ -26,7 +26,13 @@ class ListViewScreen extends StatelessWidget {
             Text(doctype),
             InkWell(
               onTap: () {
-                Get.to(DynamicForm(doctype: doctype, fullForm: false));
+                Get.to(
+                  () => DynamicForm(
+                    doctype: doctype,
+                    fullForm: false,
+                    forEditing: false,
+                  ),
+                );
               },
               borderRadius: BorderRadius.circular(20), // Optional
               child: Padding(
@@ -158,16 +164,20 @@ class ListViewScreen extends StatelessWidget {
               if (listViewController.selectedRowIndices.length > 1) {
                 showAutoDismissDialog(context, "Select only one item");
               } else {
-                // final selectedItem =
-                //     reportData[listViewController.selectedRowIndices.first];
-                // Get.to(
-                //   DynamicForm(
-                //     forEditing: true,
-                //     data: selectedItem,
-                //     admin: true,
-                //   ),
-                //   arguments: {'source': 'listview', 'oldID':selectedItem['id']},
-                // );
+                final selectedItem =
+                    reportData[listViewController.selectedRowIndices.first];
+                listViewController.getItemInfo(
+                  doctype,
+                  selectedItem['item name'],
+                );
+                Get.to(
+                  () => DynamicForm(
+                    doctype: doctype,
+                    fullForm: true,
+                    forEditing: true,
+                  ),
+                  //   arguments: {'source': 'listview', 'oldID':selectedItem['id']},
+                );
               }
             },
           ),

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:moi_app/src/features/authentication/controllers/form_controller.dart';
 
 import '../../../utils/helper.dart';
 import 'shared_preferences_controller.dart';
@@ -9,6 +10,7 @@ import 'shared_preferences_controller.dart';
 class ListViewController extends GetxController {
   final session = Get.find<Session>();
   final sharedPreferencesController = Get.put(SharedPreferencesController());
+  final FormController formController = Get.put(FormController());
 
   final List<String> options = ['20', '100', '500', '2500'];
   RxList<dynamic> isSelected = [true, false, false, false].obs;
@@ -65,7 +67,6 @@ class ListViewController extends GetxController {
     if (response.statusCode != 200) {
       String message = jsonDecode(response.body)['exception'];
       showAutoDismissDialog(context, message);
-
     }
     clearSelections();
   }
@@ -175,6 +176,37 @@ class ListViewController extends GetxController {
           }).toList();
 
       return defaultFields;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>?> getItemInfo(
+    String doctype,
+    String itemName,
+  ) async {
+    final prefs = await sharedPreferencesController.prefs;
+    final String? domain = prefs.getString("domain");
+    final reportViewUrl = Uri.parse(
+      "$domain/api/method/frappe.desk.form.load.getdoc",
+    );
+
+    Map<String, String> reqBody = {
+      'doctype': doctype,
+      'name': itemName,
+      // '_': DateTime.now().millisecondsSinceEpoch.toString(),
+    };
+    final response = await session.post(reportViewUrl, body: reqBody);
+    Map<String, dynamic> data = jsonDecode(response.body);
+    Map<String, dynamic> doctypeData = data['docs'][0];
+    for (var entry in doctypeData.entries) {
+      // doctypeData.entries.map((entry) {
+      String fieldName = entry.key.toString();
+      var value = entry.value;
+      if (value.runtimeType == List) {
+        // table field
+        formController.tableRowValues[fieldName] = removeTableMetadata(value);
+      } else {
+        formController.formValues[fieldName] = value;
+      }
     }
   }
 }

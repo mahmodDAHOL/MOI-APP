@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
 
 import '../../../utils/helper.dart';
 import '../models/doctype_model.dart';
@@ -368,14 +369,13 @@ class FormController extends GetxController {
     }
   }
 
-  Future<void> submitForm(String doctype, context) async {
+  Future<void> submitForm(String doctype, bool forEditing, context) async {
     if (isSubmitting.value) return;
     isSubmitting.value = true;
     final prefs = await sharedPreferencesController.prefs;
     final String? domain = prefs.getString("domain");
     final String? owner = prefs.getString("login_email");
 
-    final reportViewUrl = Uri.parse("$domain/api/method/frappe.client.save");
     Map<String, dynamic> jsonReq = {
       "docstatus": 0,
       "doctype": doctype,
@@ -391,16 +391,47 @@ class FormController extends GetxController {
       ...formValues,
     };
 
-    String docJson = jsonEncode(fullDoc);
-    Map<String, String> reqBody = {'doc': docJson};
-    final response = await session.post(reportViewUrl, body: reqBody);
-    if (response.statusCode == 200) {
-      isSubmitting.value = false;
-      Get.to(ListViewScreen(doctype: doctype));
+    Uri reportViewUrl;
+    var response;
+    if (forEditing) {
+      reportViewUrl = Uri.parse(
+        "$domain/api/method/frappe.desk.form.save.savedocs",
+      );
+      String docJson = jsonEncode(fullDoc);
+      String docDataEncoded = Uri.encodeComponent(docJson);
+      String updatedJsonString = 'doc=$docDataEncoded&action=Save';
+      // String finalEncodedData = Uri.encodeComponent(updatedJsonString);
+      final headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        ...session.headers,
+      };
+
+      response = await http.post(
+        reportViewUrl,
+        headers: headers,
+        body: updatedJsonString, // This is the raw string you provided
+      );
+      if (response.statusCode == 200) {
+        isSubmitting.value = false;
+        Get.to(() => ListViewScreen(doctype: doctype));
+      } else {
+        String errorMessage = jsonDecode(response.body)['exception'];
+        isSubmitting.value = false;
+        showAutoDismissDialog(context, "Error: $errorMessage");
+      }
     } else {
-      String errorMessage = jsonDecode(response.body)['exception'];
-      isSubmitting.value = false;
-      showAutoDismissDialog(context, "Error: $errorMessage");
+      reportViewUrl = Uri.parse("$domain/api/method/frappe.client.save");
+      String docJson = jsonEncode(fullDoc);
+      Map<String, String> reqBody = {'doc': docJson};
+      response = await session.post(reportViewUrl, body: reqBody);
+      if (response.statusCode == 200) {
+        isSubmitting.value = false;
+        Get.to(() => ListViewScreen(doctype: doctype));
+      } else {
+        String errorMessage = jsonDecode(response.body)['exception'];
+        isSubmitting.value = false;
+        showAutoDismissDialog(context, "Error: $errorMessage");
+      }
     }
   }
 }

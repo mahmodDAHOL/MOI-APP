@@ -265,10 +265,9 @@ Map<String, List<FormFieldData>> decodeFormFieldsMap(String jsonString) {
               "Expected Map<String, dynamic>, got ${item.runtimeType}",
             );
           }
-        if (item['data']!=null){
-
-          return FormFieldData.fromJson(item);
-        }
+          if (item['data'] != null) {
+            return FormFieldData.fromJson(item);
+          }
           return FormFieldData.fromJson(item);
         }).toList();
 
@@ -312,4 +311,31 @@ Map<String, dynamic> editTableRow(
 bool toBool(String? value) {
   if (value == null) return false;
   return value == '1';
+}
+
+List removeTableMetadata(List data) {
+  List<String> keysToRemove = [
+    'name',
+    'owner',
+    'creation',
+    'modified',
+    'modified_by',
+    'docstatus',
+    'idx',
+    'parent',
+    'parentfield',
+    'parenttype',
+    'doctype',
+  ];
+
+  List editedData = data.map((row) {
+    if (row is Map) {
+      final Map copy = Map.from(row);
+      copy.removeWhere((key, value) => keysToRemove.contains(key));
+      return copy;
+    }
+    return row;
+  }).toList();
+
+  return editedData;
 }

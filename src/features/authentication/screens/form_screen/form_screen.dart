@@ -13,7 +13,14 @@ class DynamicForm extends StatelessWidget {
   final bool fullForm;
   final FormController controller = Get.put(FormController());
 
-  DynamicForm({super.key, required this.doctype, required this.fullForm});
+  final bool forEditing;
+
+  DynamicForm({
+    super.key,
+    required this.doctype,
+    required this.fullForm,
+    required this.forEditing,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,49 +38,9 @@ class DynamicForm extends StatelessWidget {
           } else if (snapshot.hasData) {
             Map<String, List<FormFieldData>> tabs = snapshot.data!;
             if (fullForm) {
-              return ListView(
-                children: [
-                  ...tabs.entries.map((tabEntry) {
-                    return CollapsibleWidget(
-                      header: tabEntry.key,
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
-                        itemCount: tabEntry.value.length,
-                        itemBuilder: (context, fieldIndex) {
-                          return _buildFieldWidget(
-                            tabEntry.value[fieldIndex],
-                            controller,
-                            context,
-                          );
-                        },
-                      ),
-                    );
-                  }),
-                ],
-              );
+              return getFullFormWidget(tabs);
             } else {
-              return CollapsibleWidget(
-                header: tabs.keys.first,
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  itemCount: tabs.values.single.length + 1,
-                  itemBuilder: (context, fieldIndex) {
-                    if (fieldIndex < tabs.values.single.length) {
-                      FormFieldData field = tabs.values.single[fieldIndex];
-                      return _buildFieldWidget(field, controller, context);
-                    } else {
-                      return TextButton(
-                        onPressed: () {
-                          Get.to(DynamicForm(doctype: doctype, fullForm: true));
-                        },
-                        child: Text("Edit full form"),
-                      );
-                    }
-                  },
-                ),
-              ); // fullForm is false
+              return getMainFormWidget(tabs);
             }
           } else {
             return Center(child: Text("No fields found"));
@@ -84,7 +51,7 @@ class DynamicForm extends StatelessWidget {
         onPressed:
             controller.isSubmitting.value
                 ? null
-                : () => controller.submitForm(doctype, context),
+                : () => controller.submitForm(doctype, forEditing, context),
         child:
             controller.isSubmitting.value
                 ? const SizedBox(
@@ -102,21 +69,23 @@ class DynamicForm extends StatelessWidget {
     FormController controller,
     BuildContext context,
   ) {
-
     switch (field.type) {
       case FieldType.text:
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              decoration: InputDecoration(labelText: field.label),
-              controller: TextEditingController(
-                text: field.defaultValue?.toString() ?? controller.formValues[field.fieldName],
-              ),
-              onChanged: (value) {
-                controller.formValues[field.fieldName] = value.toString();
-              },
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: TextField(
+            decoration: InputDecoration(labelText: field.label),
+            controller: TextEditingController(
+              text:
+                  field.defaultValue?.toString() ??
+                  controller.formValues[field.fieldName]?.toString() ??
+                  "",
             ),
-          );
+            onChanged: (value) {
+              controller.formValues[field.fieldName] = value.toString();
+            },
+          ),
+        );
 
       case FieldType.select:
         return Obx(() {
@@ -182,7 +151,11 @@ class DynamicForm extends StatelessWidget {
                         ),
                         onTap: () {
                           Get.to(
-                            DynamicForm(doctype: field.label!, fullForm: false),
+                            () => DynamicForm(
+                              doctype: field.label!,
+                              fullForm: false,
+                              forEditing: forEditing,
+                            ),
                           );
                         },
                       ),
@@ -227,8 +200,9 @@ class DynamicForm extends StatelessWidget {
       case FieldType.check:
         return Obx(() {
           final bool isChecked =
-              toBool(controller.formValues[field.fieldName]) == true ||
-              (toBool(field.defaultValue) == true &&
+              toBool(controller.formValues[field.fieldName].toString()) ==
+                  true ||
+              (toBool(field.defaultValue.toString()) == true &&
                   controller.formValues[field.fieldName] == null);
 
           return ListTile(
@@ -268,5 +242,56 @@ class DynamicForm extends StatelessWidget {
         },
       );
     }).toList();
+  }
+
+  Widget getMainFormWidget(Map<String, dynamic> tabs) {
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      itemCount: tabs.values.single.length + 1,
+      itemBuilder: (context, fieldIndex) {
+        if (fieldIndex < tabs.values.single.length) {
+          FormFieldData field = tabs.values.single[fieldIndex];
+          return _buildFieldWidget(field, controller, context);
+        } else {
+          return TextButton(
+            onPressed: () {
+              Get.to(
+                () => DynamicForm(
+                  doctype: doctype,
+                  fullForm: true,
+                  forEditing: forEditing,
+                ),
+              );
+            },
+            child: Text("Edit full form"),
+          );
+        }
+      },
+    );
+  }
+
+  Widget getFullFormWidget(Map<String, List<FormFieldData>> tabs) {
+    return ListView(
+      children: [
+        ...tabs.entries.map((tabEntry) {
+          return CollapsibleWidget(
+            header: tabEntry.key,
+            child: ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: tabEntry.value.length,
+              itemBuilder: (context, fieldIndex) {
+                return _buildFieldWidget(
+                  tabEntry.value[fieldIndex],
+                  controller,
+                  context,
+                );
+              },
+            ),
+          );
+        }),
+      ],
+    );
   }
 }
