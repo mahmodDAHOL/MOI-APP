@@ -23,7 +23,7 @@ class TableWithAddButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      print(field.fieldName);
+      print(" in table build ${controller.tableRowValues}");
       return Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
@@ -64,7 +64,7 @@ class TableWithAddButton extends StatelessWidget {
 
   TableRow GetTableRow(
     String tableFieldName,
-    Map<String, dynamic> row,
+    Map row,
     int rowIndex,
     BuildContext context,
   ) {
@@ -116,7 +116,7 @@ class TableWithAddButton extends StatelessWidget {
     List<TableRow> TableRows =
         tableFields.asMap().entries.map((entry) {
           int rowIndex = entry.key;
-          Map<String, dynamic> row = entry.value;
+          Map row = entry.value;
           return GetTableRow(tableFieldName, row, rowIndex, context);
         }).toList();
     return TableRows;
@@ -174,7 +174,7 @@ class TableWithAddButton extends StatelessWidget {
             },
 
             textAlign: TextAlign.center,
-            controller: TextEditingController(text: value),
+            controller: TextEditingController(text: value.toString()),
             decoration: const InputDecoration(border: InputBorder.none),
           ),
         );
@@ -182,16 +182,38 @@ class TableWithAddButton extends StatelessWidget {
         return Obx(() {
           return ListTile(
             title: Text(field.data['label'] ?? field.data['fieldName']),
-            subtitle: Text(
-              controller.formValues[field.fieldName]?.toString() ??
-                  "Select Option",
-            ),
+            subtitle: Text(getLinkValue(tableFieldName, rowIndex, colIndex)),
             trailing: Icon(Icons.arrow_drop_down),
             onTap: () {
               showModalBottomSheet(
                 context: context,
                 builder: (context) {
-                  return ListView(children: getSelectOptions(field));
+                  return ListView(
+                    children:
+                        (field.data['options'] ?? []).map<Widget>((option) {
+                          return ListTile(
+                            title: Text(option),
+                            onTap: () {
+                              Map<String, dynamic> mutableRow = editTableRow(
+                                tableFieldName,
+                                controller.tableRowValues,
+                                rowIndex,
+                                colIndex,
+                                option,
+                              );
+                              tableData.addAll(mutableRow);
+
+                              controller.tablesData[tableFieldName]!.add(
+                                tableData,
+                              );
+
+                              controller.tableRowValues.refresh();
+                              controller.tablesData.refresh();
+                              Get.back();
+                            },
+                          );
+                        }).toList(),
+                  );
                 },
               );
             },
@@ -201,10 +223,8 @@ class TableWithAddButton extends StatelessWidget {
         return Obx(() {
           return ListTile(
             title: Text(field.label ?? field.fieldName),
-            subtitle: Text(
-              controller.formValues[field.fieldName]?.toString() ??
-                  "Select Option",
-            ),
+            subtitle: Text(getLinkValue(tableFieldName, rowIndex, colIndex)),
+
             trailing: Icon(Icons.arrow_drop_down),
             onTap: () async {
               List<String> options = await field.options!;
@@ -226,8 +246,22 @@ class TableWithAddButton extends StatelessWidget {
                         return ListTile(
                           title: Text(option),
                           onTap: () {
-                            controller.formValues[field.fieldName] =
-                                option.toString();
+                            Map<String, dynamic> mutableRow = editTableRow(
+                              tableFieldName,
+                              controller.tableRowValues,
+                              rowIndex,
+                              colIndex,
+                              option.toString(),
+                            );
+                            tableData.addAll(mutableRow);
+
+                            controller.tablesData[tableFieldName]!.add(
+                              tableData,
+                            );
+
+                            controller.tableRowValues.refresh();
+                            controller.tablesData.refresh();
+
                             Get.back();
                           },
                         );
@@ -263,15 +297,36 @@ class TableWithAddButton extends StatelessWidget {
     }
   }
 
-  List<Widget> getSelectOptions(field) {
-    return (field.data['options'] ?? []).map<Widget>((option) {
-      return ListTile(
-        title: Text(option),
-        onTap: () {
-          controller.formValues[field.fieldName] = option.toString();
-          Get.back();
-        },
-      );
-    }).toList();
+  String getLinkValue(String tableFieldName, int rowIndex, int colIndex) {
+    var tableData = controller.tableRowValues[tableFieldName];
+    var rowData =
+        tableData is List && rowIndex >= 0 && rowIndex < tableData.length
+            ? tableData[rowIndex]
+            : null;
+    rowData = rowData.values.toList();
+    var cellValue =
+        rowData is List && colIndex >= 0 && colIndex < rowData.length
+            ? rowData[colIndex]
+            : null;
+
+    String displayText = cellValue?.toString() ?? "Select Option";
+    return displayText;
+  }
+
+  void changeValue(
+    String tableFieldName,
+    int rowIndex,
+    int colIndex,
+    String value,
+  ) {
+    var tableData = controller.tablesData[tableFieldName];
+    if (tableData is List && rowIndex >= 0 && rowIndex < tableData.length) {
+      var rowData = tableData[rowIndex];
+      if (rowData is List && colIndex >= 0 && colIndex < rowData.length) {
+        rowData[colIndex] = value;
+
+        controller.tablesData.refresh();
+      }
+    }
   }
 }

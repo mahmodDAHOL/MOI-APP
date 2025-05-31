@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../utils/helper.dart';
+import '../../controllers/form_controller.dart';
 import '../../controllers/list_view_controller.dart';
 import '../form_screen/form_screen.dart';
 
@@ -9,6 +10,7 @@ class ListViewScreen extends StatelessWidget {
   ListViewScreen({super.key, required this.doctype});
 
   final ListViewController listViewController = Get.put(ListViewController());
+  final FormController formController = Get.find();
   final String doctype;
 
   // Controller for the filter TextField

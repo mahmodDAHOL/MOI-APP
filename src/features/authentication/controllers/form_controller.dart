@@ -55,8 +55,10 @@ class FormController extends GetxController {
       for (var tab in tabs.values) {
         for (var field in tab) {
           if (field.type == FieldType.table) {
-            tablesData[field.fieldName] = [];
-            tableRowValues[field.fieldName] = [];
+            if (tableRowValues[field.fieldName] == null) {
+              tablesData[field.fieldName] = [];
+              tableRowValues[field.fieldName] = [];
+            }
           }
         }
       }
@@ -392,7 +394,7 @@ class FormController extends GetxController {
     };
 
     Uri reportViewUrl;
-    var response;
+    http.Response response;
     if (forEditing) {
       reportViewUrl = Uri.parse(
         "$domain/api/method/frappe.desk.form.save.savedocs",
@@ -400,7 +402,6 @@ class FormController extends GetxController {
       String docJson = jsonEncode(fullDoc);
       String docDataEncoded = Uri.encodeComponent(docJson);
       String updatedJsonString = 'doc=$docDataEncoded&action=Save';
-      // String finalEncodedData = Uri.encodeComponent(updatedJsonString);
       final headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
         ...session.headers,
@@ -409,7 +410,7 @@ class FormController extends GetxController {
       response = await http.post(
         reportViewUrl,
         headers: headers,
-        body: updatedJsonString, // This is the raw string you provided
+        body: updatedJsonString,
       );
       if (response.statusCode == 200) {
         isSubmitting.value = false;

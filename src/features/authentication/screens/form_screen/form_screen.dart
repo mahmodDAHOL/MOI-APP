@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:moi_app/src/common_widgets/form/collapsable_list_widget.dart';
 
+import '../../../../common_widgets/form/collapsable_list_widget.dart';
 import '../../../../common_widgets/form/table.dart';
 import '../../../../utils/helper.dart';
 import '../../controllers/form_controller.dart';
@@ -24,6 +24,8 @@ class DynamicForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print(" after getItemInfo ${controller.tableRowValues}");
+
     return Scaffold(
       appBar: AppBar(title: Text("Dynamic Form")),
       body: FutureBuilder<Map<String, List<FormFieldData>>>(

@@ -192,21 +192,26 @@ class ListViewController extends GetxController {
     Map<String, String> reqBody = {
       'doctype': doctype,
       'name': itemName,
-      // '_': DateTime.now().millisecondsSinceEpoch.toString(),
+      '_': DateTime.now().millisecondsSinceEpoch.toString(),
     };
     final response = await session.post(reportViewUrl, body: reqBody);
     Map<String, dynamic> data = jsonDecode(response.body);
-    Map<String, dynamic> doctypeData = data['docs'][0];
-    for (var entry in doctypeData.entries) {
-      // doctypeData.entries.map((entry) {
-      String fieldName = entry.key.toString();
-      var value = entry.value;
-      if (value.runtimeType == List) {
-        // table field
-        formController.tableRowValues[fieldName] = removeTableMetadata(value);
-      } else {
-        formController.formValues[fieldName] = value;
+    if (data['docs'] != null) {
+      Map<String, dynamic> doctypeData = data['docs'][0];
+      for (var entry in doctypeData.entries) {
+        // doctypeData.entries.map((entry) {
+        String fieldName = entry.key.toString();
+        var value = entry.value;
+        if (value.runtimeType == List) {
+          // table field
+          formController.tableRowValues[fieldName] = removeTableMetadata(value);
+        } else {
+          formController.formValues[fieldName] = value;
+        }
       }
     }
+    formController.tableRowValues.refresh();
+    formController.formValues.refresh();
+    return null;
   }
 }
