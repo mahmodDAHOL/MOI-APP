@@ -24,12 +24,10 @@ class DynamicForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print(" after getItemInfo ${controller.tableRowValues}");
-
     return Scaffold(
       appBar: AppBar(title: Text("Dynamic Form")),
       body: FutureBuilder<Map<String, List<FormFieldData>>>(
-        future: controller.getFormLayout(doctype, fullForm),
+        future: controller.getFormLayout(doctype, fullForm, forEditing),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
@@ -148,7 +146,13 @@ class DynamicForm extends StatelessWidget {
                         title: Row(
                           children: [
                             Icon(Icons.add, size: 20),
-                            Text("Create a new ${field.label}"),
+                            Expanded(
+                              child: Text(
+                                "Create a new ${field.label}",
+                                softWrap: true,
+                                overflow: TextOverflow.visible,
+                              ),
+                            ),
                           ],
                         ),
                         onTap: () {
@@ -156,7 +160,7 @@ class DynamicForm extends StatelessWidget {
                             () => DynamicForm(
                               doctype: field.label!,
                               fullForm: false,
-                              forEditing: forEditing,
+                              forEditing: false,
                             ),
                           );
                         },
@@ -212,7 +216,7 @@ class DynamicForm extends StatelessWidget {
             trailing: Checkbox(
               value: isChecked,
               onChanged: (value) {
-                controller.formValues[field.fieldName] = value.toString();
+                controller.formValues[field.fieldName] = toIntBool(value);
               },
             ),
           );

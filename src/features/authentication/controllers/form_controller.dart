@@ -19,6 +19,17 @@ class FormController extends GetxController {
   RxMap<dynamic, dynamic> tablesData = {}.obs;
   RxMap<dynamic, dynamic> tableRowValues = {}.obs; // rows for each table
 
+  void reset() {
+    formValues.clear();
+    tablesData.clear();
+    tableRowValues.clear();
+
+    // Notify UI and controllers
+    formValues.refresh();
+    tablesData.refresh();
+    tableRowValues.refresh();
+  }
+
   Future<Map<String, dynamic>> getFormLayoutData(String doctype) async {
     final prefs = await sharedPreferencesController.prefs;
     final String? domain = prefs.getString("domain");
@@ -45,6 +56,7 @@ class FormController extends GetxController {
   Future<Map<String, List<FormFieldData>>> getFormLayout(
     String doctype,
     bool fullForm,
+    bool forEditing,
   ) async {
     Map<String, dynamic> data = await getFormLayoutData(doctype);
     final prefs = await sharedPreferencesController.prefs;
@@ -55,9 +67,11 @@ class FormController extends GetxController {
       for (var tab in tabs.values) {
         for (var field in tab) {
           if (field.type == FieldType.table) {
-            if (tableRowValues[field.fieldName] == null) {
-              tablesData[field.fieldName] = [];
+            if (tableRowValues[field.fieldName] == null || !forEditing) {
               tableRowValues[field.fieldName] = [];
+            }
+            if (tablesData[field.fieldName] == null || !forEditing) {
+              tablesData[field.fieldName] = [];
             }
           }
         }
@@ -141,13 +155,13 @@ class FormController extends GetxController {
         final fieldMeta = fieldMap[fieldName] ?? {};
         final String fieldTypeStr = fieldMeta['fieldtype'] ?? 'Unknown';
 
-        FormFieldData field = await getFormFieldsData(
+        FormFieldData? field = await getFormFieldsData(
           fieldName,
           fieldMeta,
           tableIndex,
         );
 
-        if (fieldTypeStr == "Table") {
+        if (fieldTypeStr == "Table" && field != null) {
           tableIndex++;
           tablesData[field.fieldName] = [];
           tableRowValues[field.fieldName] = [];
@@ -164,20 +178,24 @@ class FormController extends GetxController {
             fields = [];
           }
 
-          previousTabName = field.label; // Save current tab name
+          previousTabName = field!.label; // Save current tab name
           continue;
         }
-        fields.add(field);
+        if (field != null) {
+          fields.add(field);
+        }
       } else {
         // fullForm is false
         if (fieldName == null) continue;
         final fieldMeta = fieldMap[fieldName] ?? {};
-        FormFieldData field = await getFormFieldsData(
+        FormFieldData? field = await getFormFieldsData(
           fieldName,
           fieldMeta,
           tableIndex,
         );
-        fields.add(field);
+        if (field != null) {
+          fields.add(field);
+        }
       }
     }
     if (fullForm) {
@@ -250,13 +268,15 @@ class FormController extends GetxController {
     }
   }
 
-  Future<FormFieldData> getFormFieldsData(
+  Future<FormFieldData?> getFormFieldsData(
     String fieldName,
     dynamic fieldMeta,
     int tableIndex,
   ) async {
     final String fieldTypeStr = fieldMeta['fieldtype'] ?? 'Unknown';
-
+    if (fieldMeta['hidden'] == 1) {
+      return null;
+    }
     if (fieldTypeStr == "Table") {
       return getTableFormFieldsData(fieldName, fieldMeta, tableIndex);
     }
