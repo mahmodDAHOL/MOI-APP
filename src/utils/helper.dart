@@ -312,6 +312,10 @@ bool toBool(String? value) {
   if (value == null) return false;
   return value == '1';
 }
+int toIntBool(bool? value) {
+  if (value == null) return 0;
+  return value ? 1 : 0;
+}
 
 List removeTableMetadata(List data) {
   List<String> keysToRemove = [

@@ -23,7 +23,6 @@ class TableWithAddButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      print(" in table build ${controller.tableRowValues}");
       return Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
@@ -271,7 +270,13 @@ class TableWithAddButton extends StatelessWidget {
                         title: Row(
                           children: [
                             Icon(Icons.add, size: 20),
-                            Text("Create a new ${field.label}"),
+                            Expanded(
+                              child: Text(
+                                "Create a new ${field.label}",
+                                softWrap: true,
+                                overflow: TextOverflow.visible,
+                              ),
+                            ),
                           ],
                         ),
                         onTap: () {

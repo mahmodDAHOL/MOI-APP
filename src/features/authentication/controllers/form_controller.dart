@@ -19,6 +19,17 @@ class FormController extends GetxController {
   RxMap<dynamic, dynamic> tablesData = {}.obs;
   RxMap<dynamic, dynamic> tableRowValues = {}.obs; // rows for each table
 
+  void reset() {
+    formValues.clear();
+    tablesData.clear();
+    tableRowValues.clear();
+
+    // Notify UI and controllers
+    formValues.refresh();
+    tablesData.refresh();
+    tableRowValues.refresh();
+  }
+
   Future<Map<String, dynamic>> getFormLayoutData(String doctype) async {
     final prefs = await sharedPreferencesController.prefs;
     final String? domain = prefs.getString("domain");
@@ -45,6 +56,7 @@ class FormController extends GetxController {
   Future<Map<String, List<FormFieldData>>> getFormLayout(
     String doctype,
     bool fullForm,
+    bool forEditing,
   ) async {
     Map<String, dynamic> data = await getFormLayoutData(doctype);
     final prefs = await sharedPreferencesController.prefs;
@@ -55,9 +67,11 @@ class FormController extends GetxController {
       for (var tab in tabs.values) {
         for (var field in tab) {
           if (field.type == FieldType.table) {
-            if (tableRowValues[field.fieldName] == null) {
-              tablesData[field.fieldName] = [];
+            if (tableRowValues[field.fieldName] == null || !forEditing) {
               tableRowValues[field.fieldName] = [];
+            }
+            if (tablesData[field.fieldName] == null || !forEditing) {
+              tablesData[field.fieldName] = [];
             }
           }
         }

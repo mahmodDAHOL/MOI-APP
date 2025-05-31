@@ -28,6 +28,7 @@ class ListViewScreen extends StatelessWidget {
             Text(doctype),
             InkWell(
               onTap: () {
+                formController.reset();
                 Get.to(
                   () => DynamicForm(
                     doctype: doctype,
