@@ -63,51 +63,61 @@ class TableWithAddButton extends StatelessWidget {
 
   TableRow GetTableRow(
     String tableFieldName,
-    Map row,
+    Map<dynamic, dynamic> row, // Make sure row is typed
     int rowIndex,
     BuildContext context,
   ) {
-    List<dynamic> rowValues = row.values.toList();
-    var tableData = field.tableDoctypeData!.toJson();
-    List tableFields =
+    // Get list of ordered field names from field.data
+    List<dynamic> tableFields =
         field.data.map((tablefield) {
-          if (tablefield.type == FieldType.link) {
-            if (tablefield.options.runtimeType == String) {
-              tablefield = tablefield.copyWith(
-                options: controller.searchLink(
-                  tablefield.data['label'],
-                  doctype,
-                ),
-              );
-            }
+          if (tablefield.type == FieldType.link &&
+              tablefield.options.runtimeType == String) {
+            return tablefield.copyWith(
+              options: controller.searchLink(tablefield.data['label'], doctype),
+            );
           }
           return tablefield;
         }).toList();
 
-    return TableRow(
-      children:
-          rowValues
-              .asMap()
-              .map((colIndex, value) {
-                return MapEntry(
-                  colIndex,
-                  TableCell(
-                    child: _buildFieldWidget(
-                      tableFieldName,
-                      tableFields[colIndex],
-                      rowIndex,
-                      colIndex,
-                      tableData,
-                      value,
-                      controller,
-                      context,
-                    ),
-                  ),
-                );
-              })
-              .values
-              .toList(),
-    );
+    // Extract ordered field names
+    List<String> orderedFieldNames =
+        tableFields
+            .map<String?>((f) => f.fieldName)
+            .where((name) => name != null)
+            .cast<String>()
+            .toList();
+
+    // Build table cells in correct order
+    List<Widget> cells =
+        orderedFieldNames.map((fieldName) {
+          // Get value safely
+          var value = row[fieldName];
+
+          // Get corresponding field definition
+          var fieldDef = tableFields.firstWhere(
+            (f) => f.fieldName == fieldName,
+            orElse:
+                () =>
+                    NullTableField(), // define NullField() as fallback if needed
+          );
+
+          // Return widget for the cell
+          return TableCell(
+            child: _buildFieldWidget(
+              tableFieldName,
+              fieldDef,
+              rowIndex,
+              orderedFieldNames.indexOf(fieldName),
+              field.tableDoctypeData?.toJson(),
+              value,
+              controller,
+              context,
+            ),
+          );
+        }).toList();
+
+    // Return TableRow with ordered cells
+    return TableRow(children: cells);
   }
 
   List<TableRow> getTableRows(String tableFieldName, BuildContext context) {
@@ -115,7 +125,7 @@ class TableWithAddButton extends StatelessWidget {
     List<TableRow> TableRows =
         tableFields.asMap().entries.map((entry) {
           int rowIndex = entry.key;
-          Map row = entry.value;
+          Map<dynamic, dynamic> row = entry.value;
           return GetTableRow(tableFieldName, row, rowIndex, context);
         }).toList();
     return TableRows;
@@ -127,7 +137,7 @@ class TableWithAddButton extends StatelessWidget {
           return TableCell(
             child: Center(
               child: Text(
-                field.data['label']?? "",
+                field.data['label'] ?? "",
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
             ),
@@ -334,4 +344,9 @@ class TableWithAddButton extends StatelessWidget {
       }
     }
   }
+}
+
+class NullTableField {
+  final String fieldName = '';
+  // Add other default properties needed by _buildFieldWidget
 }

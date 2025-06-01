@@ -32,7 +32,7 @@ class ListViewScreen extends StatelessWidget {
                 Get.to(
                   () => DynamicForm(
                     doctype: doctype,
-                    fullForm: false,
+                    fullForm: true,
                     forEditing: false,
                   ),
                 );
@@ -163,24 +163,28 @@ class ListViewScreen extends StatelessWidget {
         children: [
           IconButton(
             icon: Icon(Icons.edit),
-            onPressed: () {
+            onPressed: () async {
               if (listViewController.selectedRowIndices.length > 1) {
                 showAutoDismissDialog(context, "Select only one item");
               } else {
                 final selectedItem =
                     reportData[listViewController.selectedRowIndices.first];
-                listViewController.getItemInfo(
+                bool success = await listViewController.getItemInfo(
                   doctype,
                   selectedItem['item name'],
                 );
-                Get.to(
-                  () => DynamicForm(
-                    doctype: doctype,
-                    fullForm: true,
-                    forEditing: true,
-                  ),
-                  //   arguments: {'source': 'listview', 'oldID':selectedItem['id']},
-                );
+                if (success) {
+                  Get.to(
+                    () => DynamicForm(
+                      doctype: doctype,
+                      fullForm: true,
+                      forEditing: true,
+                    ),
+                    //   arguments: {'source': 'listview', 'oldID':selectedItem['id']},
+                  );
+                } else {
+                  showAutoDismissDialog(context, "You can't edit this record");
+                }
               }
             },
           ),

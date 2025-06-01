@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 
@@ -152,9 +153,11 @@ class FormController extends GetxController {
 
     for (var fieldName in fieldsOrder) {
       if (fullForm) {
-        final fieldMeta = fieldMap[fieldName] ?? {};
+        Map<String, dynamic> fieldMeta = fieldMap[fieldName] ?? {};
         final String fieldTypeStr = fieldMeta['fieldtype'] ?? 'Unknown';
-
+        if (fieldTypeStr == "Table") {
+          fieldMeta = await getTableFieldsFromUserSettings(doctype, fieldMeta);
+        }
         FormFieldData? field = await getFormFieldsData(
           fieldName,
           fieldMeta,
@@ -436,9 +439,9 @@ class FormController extends GetxController {
         isSubmitting.value = false;
         Get.to(() => ListViewScreen(doctype: doctype));
       } else {
-        String errorMessage = jsonDecode(response.body)['exception'];
+        // String errorMessage = jsonDecode(response.body)['exception'];
         isSubmitting.value = false;
-        showAutoDismissDialog(context, "Error: $errorMessage");
+        showAutoDismissDialog(context, "Error: ${response.body}");
       }
     } else {
       reportViewUrl = Uri.parse("$domain/api/method/frappe.client.save");
@@ -454,5 +457,76 @@ class FormController extends GetxController {
         showAutoDismissDialog(context, "Error: $errorMessage");
       }
     }
+  }
+
+  Future<Map<String, dynamic>> getUserSettings(String doctype) async {
+    final prefs = await sharedPreferencesController.prefs;
+    final String? domain = prefs.getString("domain");
+    Uri userSettingsUrl = Uri.parse(
+      "$domain/api/method/frappe.model.utils.user_settings.get",
+    );
+    Map<String, String> reqBody = {'doctype': doctype};
+    http.Response response = await session.post(userSettingsUrl, body: reqBody);
+    final responseBody = jsonDecode(response.body); // First decode
+    final String messageStr = responseBody['message']; // Still a String
+    final Map<String, dynamic> userSettings = jsonDecode(
+      messageStr,
+    ); // Now a Map
+    return userSettings;
+  }
+
+  Future<Map<String, dynamic>> getTableFieldsFromUserSettings(
+    String doctype,
+    Map<String, dynamic> fieldMeta,
+  ) async {
+    // Get user settings
+    final userSettings = await getUserSettings(doctype);
+
+    // Extract GridView settings
+    final tableUserSettings = userSettings['GridView'] as Map<String, dynamic>?;
+
+    // Get table label from options
+    final tableLabel = fieldMeta['options'] as String?;
+
+    if (tableUserSettings == null || tableLabel == null) {
+      return fieldMeta; // Missing required data
+    }
+
+    // Get fields defined in user settings (with order)
+    final List<dynamic>? userFields =
+        tableUserSettings[tableLabel] as List<dynamic>?;
+
+    if (userFields == null || userFields.isEmpty) {
+      return fieldMeta;
+    }
+
+    // Extract ordered field names
+    final List<String> orderedFieldNames =
+        userFields
+            .where((item) => item is Map<String, dynamic>)
+            .map((item) => item['fieldname'] as String?)
+            .where((name) => name != null)
+            .cast<String>()
+            .toList();
+
+    if (orderedFieldNames.isEmpty) {
+      return fieldMeta;
+    }
+
+    // Build ordered map based on user-defined field order
+    final Map<String, dynamic> orderedData = {};
+    final Map<String, dynamic>? originalData =
+        fieldMeta['data'] as Map<String, dynamic>?;
+
+    if (originalData != null) {
+      for (String fieldName in orderedFieldNames) {
+        if (originalData.containsKey(fieldName)) {
+          orderedData[fieldName] = originalData[fieldName];
+        }
+      }
+    }
+
+    // Return updated fieldMeta with ordered data
+    return {...fieldMeta, 'data': orderedData};
   }
 }

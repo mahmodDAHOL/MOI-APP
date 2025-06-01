@@ -179,7 +179,7 @@ class ListViewController extends GetxController {
     }
   }
 
-  Future<List<Map<String, dynamic>>?> getItemInfo(
+  Future<bool> getItemInfo(
     String doctype,
     String itemName,
   ) async {
@@ -209,9 +209,11 @@ class ListViewController extends GetxController {
           formController.formValues[fieldName] = value;
         }
       }
+    }else{
+      return false;
     }
     formController.tableRowValues.refresh();
     formController.formValues.refresh();
-    return null;
+    return true;
   }
 }
