@@ -62,23 +62,23 @@ class FormController extends GetxController {
     Map<String, dynamic> data = await getFormLayoutData(doctype);
     final prefs = await sharedPreferencesController.prefs;
 
-    String? tabsAsString = prefs.getString('tabs $doctype $fullForm');
-    if (tabsAsString != null) {
-      Map<String, List<FormFieldData>> tabs = decodeFormFieldsMap(tabsAsString);
-      for (var tab in tabs.values) {
-        for (var field in tab) {
-          if (field.type == FieldType.table) {
-            if (tableRowValues[field.fieldName] == null || !forEditing) {
-              tableRowValues[field.fieldName] = [];
-            }
-            if (tablesData[field.fieldName] == null || !forEditing) {
-              tablesData[field.fieldName] = [];
-            }
-          }
-        }
-      }
-      return tabs;
-    }
+    // String? tabsAsString = prefs.getString('tabs $doctype $fullForm');
+    // if (tabsAsString != null) {
+    //   Map<String, List<FormFieldData>> tabs = decodeFormFieldsMap(tabsAsString);
+    //   for (var tab in tabs.values) {
+    //     for (var field in tab) {
+    //       if (field.type == FieldType.table) {
+    //         if (tableRowValues[field.fieldName] == null || !forEditing) {
+    //           tableRowValues[field.fieldName] = [];
+    //         }
+    //         if (tablesData[field.fieldName] == null || !forEditing) {
+    //           tablesData[field.fieldName] = [];
+    //         }
+    //       }
+    //     }
+    //   }
+    //   return tabs;
+    // }
 
     if (data["docs"] != null && data["docs"].isNotEmpty) {
       var docsList = data["docs"];
@@ -151,8 +151,44 @@ class FormController extends GetxController {
     int tabBreakCount = 0;
     String? previousTabName;
 
-    for (var fieldName in fieldsOrder) {
+    for (var entry in fieldsOrder.asMap().entries) {
+      int index = entry.key;
+      String fieldName = entry.value;
+      var prevFieldName;
+      bool condition;
+      try {
+        prevFieldName = fieldsOrder[index - 1];
+        condition = fieldMap[prevFieldName]['fieldtype'] != 'Tab Break';
+      } catch (e) {
+        prevFieldName = null;
+        condition = true;
+      }
       if (fullForm) {
+        // handle special case where no Tab Break at first field, instead Section break
+        if (fields.isEmpty &&
+            fieldMap[fieldName]['fieldtype'] == 'Section Break' &&
+            condition) {
+          Map<String, dynamic> fieldMeta = fieldMap[fieldName] ?? {};
+          FormFieldData? field = await getFormFieldsData(
+            fieldName,
+            fieldMeta,
+            tableIndex,
+          );
+
+          tabBreakCount++;
+
+          if (tabBreakCount > 1 && previousTabName != null) {
+            formTabs[previousTabName] = fields;
+            fields = []; // Reset for new section
+          } else {
+            // First Tab Break → reset fields
+            fields = [];
+          }
+
+          previousTabName = field!.label; // Save current tab name
+          continue;
+        }
+
         Map<String, dynamic> fieldMeta = fieldMap[fieldName] ?? {};
         final String fieldTypeStr = fieldMeta['fieldtype'] ?? 'Unknown';
         if (fieldTypeStr == "Table") {
@@ -173,7 +209,7 @@ class FormController extends GetxController {
         if (fieldTypeStr == "Tab Break") {
           tabBreakCount++;
 
-          if (tabBreakCount > 1 && previousTabName != null) {
+          if (tabBreakCount >= 1 && previousTabName != null) {
             formTabs[previousTabName] = fields;
             fields = []; // Reset for new section
           } else {

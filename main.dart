@@ -47,7 +47,7 @@ class App extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       defaultTransition: Transition.leftToRightWithFade,
       transitionDuration: const Duration(milliseconds: 500),
-      home: ListViewScreen(doctype: "Item"),
+      home: ListViewScreen(doctype: "Purchase Order"),
     );
   }
 }
