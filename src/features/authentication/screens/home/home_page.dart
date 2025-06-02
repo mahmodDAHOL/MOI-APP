@@ -33,7 +33,7 @@ class HomePage extends StatelessWidget {
               Spacer(),
 
               IconButton(
-                icon: Icon(Icons.logout, color: Colors.white),
+                icon: Icon(Icons.logout),
                 onPressed: () async {
                   final prefs = await sharedPreferencesController.prefs;
                   DateTime now = DateTime.now();

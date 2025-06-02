@@ -241,10 +241,11 @@ class DynamicForm extends StatelessWidget {
         );
 
       default:
-        return Text(
-          "${field.fieldName} ${field.type} ",
-          style: TextStyle(color: Colors.red),
-        );
+      return SizedBox(height: 1,);
+        // return Text(
+        //   "${field.fieldName} ${field.type} ",
+        //   style: TextStyle(color: Colors.red),
+        // );
     }
   }
 

@@ -307,8 +307,8 @@ class TableWithAddButton extends StatelessWidget {
           );
         });
       default:
-        return Text(field.fieldName, style: TextStyle(color: Colors.red));
-      // return SizedBox(height: 1,);
+        // return Text(field.fieldName, style: TextStyle(color: Colors.red));
+      return SizedBox(height: 1,);
     }
   }
 

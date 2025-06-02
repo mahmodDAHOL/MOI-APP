@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../constants/colors.dart';
 import '../../../utils/helper.dart';
 import 'shared_preferences_controller.dart';
 
@@ -15,6 +16,7 @@ class HomeController extends GetxController {
   }
 
   BottomNavigationBar get bottomNavigationBar => BottomNavigationBar(
+    selectedItemColor:tPrimaryColor,
     onTap: (index) {
       myIndex.value = index;
     },
