@@ -8,11 +8,9 @@ import '../../controllers/form_controller.dart';
 import '../../models/field_type_model.dart';
 import '../../models/form_field_model.dart';
 
-class DynamicForm extends StatelessWidget {
+class DynamicForm extends StatefulWidget {
   final String doctype;
   final bool fullForm;
-  final FormController controller = Get.put(FormController());
-
   final bool forEditing;
 
   DynamicForm({
@@ -23,53 +21,84 @@ class DynamicForm extends StatelessWidget {
   });
 
   @override
+  State<DynamicForm> createState() => _DynamicFormState();
+}
+
+class _DynamicFormState extends State<DynamicForm> {
+  final FormController controller = Get.put(FormController());
+  bool refresh = false;
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text("Dynamic Form")),
-      body: FutureBuilder<Map<String, List<FormFieldData>>>(
-        future: controller.getFormLayout(doctype, fullForm, forEditing),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text("This will take a while for only first time"),
-                  SizedBox(height: 20,),
-                  Center(child: CircularProgressIndicator()),
-                ],
-              ),
+    return Obx(
+      () => Scaffold(
+        appBar: AppBar(title: Text("Dynamic Form")),
+        body: RefreshIndicator(
+          onRefresh: () async {
+            // Trigger a fresh load with skipCache = true
+            await controller.getFormLayout(
+              widget.doctype,
+              widget.fullForm,
+              widget.forEditing,
+              skipCache: true,
             );
-          } else if (snapshot.hasError) {
-            return Center(
-              child: Text("Error: ${snapshot.error}\n\n${snapshot.stackTrace}"),
-            );
-          } else if (snapshot.hasData) {
-            Map<String, List<FormFieldData>> tabs = snapshot.data!;
-            if (fullForm) {
-              return getFullFormWidget(tabs);
-            } else {
-              return getMainFormWidget(tabs);
-            }
-          } else {
-            return Center(child: Text("No fields found"));
-          }
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed:
-            controller.isSubmitting.value
-                ? null
-                : () => controller.submitForm(doctype, forEditing, context),
-        child:
-            controller.isSubmitting.value
-                ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(color: Colors.white),
-                )
-                : const Icon(Icons.save),
+            setState(() {
+              refresh = !refresh;
+            });
+          },
+          child: FutureBuilder<Map<String, List<FormFieldData>>>(
+            future: controller.getFormLayout(
+              widget.doctype,
+              widget.fullForm,
+              widget.forEditing,
+              skipCache: false, // Use cache by default
+            ),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [Center(child: CircularProgressIndicator())],
+                  ),
+                );
+              } else if (snapshot.hasError) {
+                return Center(
+                  child: Text(
+                    "Error: ${snapshot.error}\n\n${snapshot.stackTrace}",
+                  ),
+                );
+              } else if (snapshot.hasData) {
+                Map<String, List<FormFieldData>> tabs = snapshot.data!;
+                if (widget.fullForm) {
+                  return getFullFormWidget(tabs);
+                } else {
+                  return getMainFormWidget(tabs);
+                }
+              } else {
+                return Center(child: Text("No fields found"));
+              }
+            },
+          ),
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed:
+              controller.isSubmitting.value
+                  ? null
+                  : () => controller.submitForm(
+                    widget.doctype,
+                    widget.forEditing,
+                    context,
+                  ),
+          child:
+              controller.isSubmitting.value
+                  ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(color: Colors.white),
+                  )
+                  : const Icon(Icons.save),
+        ),
       ),
     );
   }
@@ -241,11 +270,11 @@ class DynamicForm extends StatelessWidget {
         );
 
       default:
-      return SizedBox(height: 1,);
-        // return Text(
-        //   "${field.fieldName} ${field.type} ",
-        //   style: TextStyle(color: Colors.red),
-        // );
+        return SizedBox(height: 1);
+      // return Text(
+      //   "${field.fieldName} ${field.type} ",
+      //   style: TextStyle(color: Colors.red),
+      // );
     }
   }
 
@@ -275,9 +304,9 @@ class DynamicForm extends StatelessWidget {
             onPressed: () {
               Get.to(
                 () => DynamicForm(
-                  doctype: doctype,
+                  doctype: widget.doctype,
                   fullForm: true,
-                  forEditing: forEditing,
+                  forEditing: widget.forEditing,
                 ),
               );
             },

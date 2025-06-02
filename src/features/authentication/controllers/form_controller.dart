@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 
@@ -16,7 +15,8 @@ class FormController extends GetxController {
   final sharedPreferencesController = Get.put(SharedPreferencesController());
 
   RxMap formValues = {}.obs;
-  RxBool isSubmitting = false.obs;
+  var isSubmitting = false.obs;
+  RxBool skipCache = false.obs;
   RxMap<dynamic, dynamic> tablesData = {}.obs;
   RxMap<dynamic, dynamic> tableRowValues = {}.obs; // rows for each table
 
@@ -57,38 +57,42 @@ class FormController extends GetxController {
   Future<Map<String, List<FormFieldData>>> getFormLayout(
     String doctype,
     bool fullForm,
-    bool forEditing,
-  ) async {
+    bool forEditing, {
+    bool skipCache = false, // ← NEW PARAMETER
+  }) async {
     Map<String, dynamic> data = await getFormLayoutData(doctype);
+
     final prefs = await sharedPreferencesController.prefs;
 
-    String? tabsAsString = prefs.getString('tabs $doctype $fullForm');
-    if (tabsAsString != null) {
-      Map<String, List<FormFieldData>> tabs = decodeFormFieldsMap(tabsAsString);
-      for (var tab in tabs.values) {
-        for (var field in tab) {
-          if (field.type == FieldType.table) {
-            if (tableRowValues[field.fieldName] == null || !forEditing) {
-              tableRowValues[field.fieldName] = [];
-            }
-            if (tablesData[field.fieldName] == null || !forEditing) {
-              tablesData[field.fieldName] = [];
+    Map<String, List<FormFieldData>> tabs = {};
+
+    if (!skipCache) {
+      // ← Only use cache if skipCache == false
+      String? tabsAsString = prefs.getString('tabs $doctype $fullForm');
+      if (tabsAsString != null) {
+        tabs = decodeFormFieldsMap(tabsAsString);
+        for (var tab in tabs.values) {
+          for (var field in tab) {
+            if (field.type == FieldType.table) {
+              if (tableRowValues[field.fieldName] == null || !forEditing) {
+                tableRowValues[field.fieldName] = [];
+              }
+              if (tablesData[field.fieldName] == null || !forEditing) {
+                tablesData[field.fieldName] = [];
+              }
             }
           }
         }
+        return tabs;
       }
-      return tabs;
     }
 
     if (data["docs"] != null && data["docs"].isNotEmpty) {
       var docsList = data["docs"];
-      Map<String, List<FormFieldData>> tabs = await getTabs(
-        doctype,
-        docsList,
-        0,
-        fullForm,
-      );
+      tabs = await getTabs(doctype, docsList, 0, fullForm);
+
       prefs.setString('tabs $doctype $fullForm', encodeFormFieldsMap(tabs));
+
       return tabs;
     } else {
       return {};
