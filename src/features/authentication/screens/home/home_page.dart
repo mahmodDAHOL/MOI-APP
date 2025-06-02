@@ -17,9 +17,9 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     List<Widget> widgetList = [
-      Text("Charts"),
+      Text("No Charts Exist"),
       _buildFutureBuilder(),
-      Text("Cards"),
+      Text("No Cards Exist"),
     ];
 
     return SafeArea(

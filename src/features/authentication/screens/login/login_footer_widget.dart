@@ -26,7 +26,7 @@ class LoginFooterWidget extends StatelessWidget {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {
-                loginController.loginUser();
+                loginController.loginUser(context);
               },
               child: Text("LOGIN"),
             ),

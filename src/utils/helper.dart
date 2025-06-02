@@ -20,8 +20,8 @@ class Session {
     return response;
   }
 
-  Future<http.Response> post(Uri url, {Map<String, String>? body}) async {
-    final response = await http.post(url, headers: headers, body: body);
+  Future<http.Response> post(Uri url , {Map<String, String>? body}) async {
+    http.Response response = await http.post(url, headers: headers, body: body);
     _updateCookies(response.headers);
     return response;
   }
@@ -194,7 +194,7 @@ void showAutoDismissDialog(BuildContext context, String message) {
   showDialog(
     context: context,
     builder: (context) {
-      Future.delayed(Duration(seconds: 3), () {
+      Future.delayed(Duration(seconds: 7), () {
         Navigator.of(context).pop(); // Close dialog
       });
       return AlertDialog(

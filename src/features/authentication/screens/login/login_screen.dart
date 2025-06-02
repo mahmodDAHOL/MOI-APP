@@ -14,19 +14,25 @@ class LoginScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        body: SingleChildScrollView(
-          child: Container(
-            padding: EdgeInsets.all(tDefaultSize),
-            child: Column(
-              children: [
-                FormHeaderWidget(
-                  image: tWelcomeScreenImage,
-                  title: tLoginTitle,
-                  subTitle: tLoginSubTitle,
-                ),
-                LoginForm(),
-                LoginFooterWidget(),
-              ],
+        body: Center(
+          child: SingleChildScrollView(
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: 20,
+              ), // ← Left & Right Padding Only
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  FormHeaderWidget(
+                    image: tWelcomeScreenImage,
+                    title: tLoginTitle,
+                    subTitle: tLoginSubTitle,
+                  ),
+                  LoginForm(),
+                  LoginFooterWidget(),
+                ],
+              ),
             ),
           ),
         ),

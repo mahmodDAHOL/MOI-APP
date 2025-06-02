@@ -12,7 +12,8 @@ class LoginController extends GetxController {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   TextEditingController domainController = TextEditingController();
-  final session = Get.find<Session>();
+  // final session = Get.find<Session>();
+  final session = Get.put(Session());
   final sharedPreferencesController = Get.put(SharedPreferencesController());
 
   Future<bool> urlExists(String url) async =>
@@ -21,14 +22,14 @@ class LoginController extends GetxController {
           .then((req) => req.close()))).statusCode ==
       HttpStatus.ok;
 
-  void loginUser() async {
+  void loginUser(BuildContext context) async {
     final prefs = await sharedPreferencesController.prefs;
     String domain = domainController.text;
     // final exists = await urlExists(domain);
     // if (exists) {
-      if (emailController.text.isNotEmpty &&
-          passwordController.text.isNotEmpty) {
-        final loginUrl = Uri.parse("$domain/api/method/login");
+    if (emailController.text.isNotEmpty && passwordController.text.isNotEmpty) {
+      final loginUrl = Uri.parse("$domain/api/method/login");
+      try {
         final loginResponse = await session.post(
           loginUrl,
           body: {"usr": emailController.text, "pwd": passwordController.text},
@@ -68,13 +69,16 @@ class LoginController extends GetxController {
             );
           }
         } else {
-          print(
-            "Failed to fetch dashboard page. Status code: ${loginResponse.statusCode}",
-          );
+          String message = jsonDecode(loginResponse.body)['message'];
+          showAutoDismissDialog(context, message);
+          print("${jsonDecode(loginResponse.body)['message']}");
         }
-      } else {
-        print("Email and password cannot be empty.");
+      } catch (e) {
+        showAutoDismissDialog(context, e.toString());
       }
+    } else {
+      print("Email and password cannot be empty.");
+    }
     // } else {
     //   print("domain is not exist.");
     // }

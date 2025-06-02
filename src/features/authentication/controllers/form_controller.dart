@@ -62,23 +62,23 @@ class FormController extends GetxController {
     Map<String, dynamic> data = await getFormLayoutData(doctype);
     final prefs = await sharedPreferencesController.prefs;
 
-    // String? tabsAsString = prefs.getString('tabs $doctype $fullForm');
-    // if (tabsAsString != null) {
-    //   Map<String, List<FormFieldData>> tabs = decodeFormFieldsMap(tabsAsString);
-    //   for (var tab in tabs.values) {
-    //     for (var field in tab) {
-    //       if (field.type == FieldType.table) {
-    //         if (tableRowValues[field.fieldName] == null || !forEditing) {
-    //           tableRowValues[field.fieldName] = [];
-    //         }
-    //         if (tablesData[field.fieldName] == null || !forEditing) {
-    //           tablesData[field.fieldName] = [];
-    //         }
-    //       }
-    //     }
-    //   }
-    //   return tabs;
-    // }
+    String? tabsAsString = prefs.getString('tabs $doctype $fullForm');
+    if (tabsAsString != null) {
+      Map<String, List<FormFieldData>> tabs = decodeFormFieldsMap(tabsAsString);
+      for (var tab in tabs.values) {
+        for (var field in tab) {
+          if (field.type == FieldType.table) {
+            if (tableRowValues[field.fieldName] == null || !forEditing) {
+              tableRowValues[field.fieldName] = [];
+            }
+            if (tablesData[field.fieldName] == null || !forEditing) {
+              tablesData[field.fieldName] = [];
+            }
+          }
+        }
+      }
+      return tabs;
+    }
 
     if (data["docs"] != null && data["docs"].isNotEmpty) {
       var docsList = data["docs"];

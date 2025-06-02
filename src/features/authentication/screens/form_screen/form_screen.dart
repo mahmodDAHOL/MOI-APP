@@ -30,7 +30,17 @@ class DynamicForm extends StatelessWidget {
         future: controller.getFormLayout(doctype, fullForm, forEditing),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return Center(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text("This will take a while for only first time"),
+                  SizedBox(height: 20,),
+                  Center(child: CircularProgressIndicator()),
+                ],
+              ),
+            );
           } else if (snapshot.hasError) {
             return Center(
               child: Text("Error: ${snapshot.error}\n\n${snapshot.stackTrace}"),
