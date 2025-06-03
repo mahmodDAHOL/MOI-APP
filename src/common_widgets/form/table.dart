@@ -88,33 +88,35 @@ class TableWithAddButton extends StatelessWidget {
             .toList();
 
     // Build table cells in correct order
-    List<Widget> cells =
-        orderedFieldNames.map((fieldName) {
-          // Get value safely
-          var value = row[fieldName];
+    List<TableCell> cells =
+        orderedFieldNames
+            .map((fieldName) {
+              // Get value safely
+              var value = row[fieldName];
 
-          // Get corresponding field definition
-          var fieldDef = tableFields.firstWhere(
-            (f) => f.fieldName == fieldName,
-            orElse:
-                () =>
-                    NullTableField(), // define NullField() as fallback if needed
-          );
+              // Get corresponding field definition
+              var fieldDef = tableFields.firstWhere(
+                (f) => f.fieldName == fieldName,
+                orElse:
+                    () =>
+                        NullTableField(), // define NullField() as fallback if needed
+              );
 
-          // Return widget for the cell
-          return TableCell(
-            child: _buildFieldWidget(
-              tableFieldName,
-              fieldDef,
-              rowIndex,
-              orderedFieldNames.indexOf(fieldName),
-              field.tableDoctypeData?.toJson(),
-              value,
-              controller,
-              context,
-            ),
-          );
-        }).toList();
+              Widget? tableCell = _buildFieldWidget(
+                tableFieldName,
+                fieldDef,
+                rowIndex,
+                orderedFieldNames.indexOf(fieldName),
+                field.tableDoctypeData?.toJson(),
+                value,
+                controller,
+                context,
+              );
+              // Return widget for the cell
+              return tableCell != null ? TableCell(child: tableCell) : null;
+            })
+            .whereType<TableCell>()
+            .toList();
 
     // Return TableRow with ordered cells
     return TableRow(children: cells);
@@ -133,16 +135,21 @@ class TableWithAddButton extends StatelessWidget {
 
   TableRow getTableHeader(BuildContext context, List tableFields) {
     List<TableCell> tableFieldsName =
-        tableFields.map<TableCell>((field) {
-          return TableCell(
-            child: Center(
-              child: Text(
-                field.data['label'] ?? "",
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            ),
-          );
-        }).toList();
+        tableFields
+            .where((field) => field.type != FieldType.unknown)
+            .map<TableCell>((field) {
+              return TableCell(
+                child: Center(
+                  child: Text(
+                    field.data['label'] ?? "",
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium!.copyWith(color: Colors.black),
+                  ),
+                ),
+              );
+            })
+            .toList();
     return TableRow(
       decoration: BoxDecoration(
         color: Colors.grey[300], // Gray background for header row
@@ -151,7 +158,7 @@ class TableWithAddButton extends StatelessWidget {
     );
   }
 
-  Widget _buildFieldWidget(
+  Widget? _buildFieldWidget(
     String tableFieldName,
     FormFieldData field,
     rowIndex,
@@ -307,8 +314,8 @@ class TableWithAddButton extends StatelessWidget {
           );
         });
       default:
-        // return Text(field.fieldName, style: TextStyle(color: Colors.red));
-      return SizedBox(height: 1,);
+        return null;
+      // return Text(field.fieldName, style: TextStyle(color: Colors.red));
     }
   }
 

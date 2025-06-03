@@ -157,7 +157,8 @@ class FormController extends GetxController {
 
     for (var entry in fieldsOrder.asMap().entries) {
       int index = entry.key;
-      String fieldName = entry.value;
+      String? fieldName = entry.value;
+      if (fieldName == null) continue;
       var prevFieldName;
       bool condition;
       try {

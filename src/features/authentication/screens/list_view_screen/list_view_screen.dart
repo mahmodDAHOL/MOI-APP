@@ -32,7 +32,7 @@ class ListViewScreen extends StatelessWidget {
                 Get.to(
                   () => DynamicForm(
                     doctype: doctype,
-                    fullForm: true,
+                    fullForm: false,
                     forEditing: false,
                   ),
                 );
@@ -177,7 +177,7 @@ class ListViewScreen extends StatelessWidget {
                   Get.to(
                     () => DynamicForm(
                       doctype: doctype,
-                      fullForm: true,
+                      fullForm: false,
                       forEditing: true,
                     ),
                     //   arguments: {'source': 'listview', 'oldID':selectedItem['id']},

@@ -201,6 +201,7 @@ class _DynamicFormState extends State<DynamicForm> {
                               fullForm: false,
                               forEditing: false,
                             ),
+                            preventDuplicates: false,
                           );
                         },
                       ),
@@ -308,6 +309,7 @@ class _DynamicFormState extends State<DynamicForm> {
                   fullForm: true,
                   forEditing: widget.forEditing,
                 ),
+                preventDuplicates: false,
               );
             },
             child: Text("Edit full form"),
