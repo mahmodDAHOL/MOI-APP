@@ -16,16 +16,16 @@ class LoginForm extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TextFormField(
-              controller: loginController.domainController,
-              decoration: InputDecoration(
-                prefixIcon: Icon(Icons.person_outline_outlined),
-                labelText: "Domian",
-                hintText: "https://example.com",
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: tFormHeight - 20),
+            // TextFormField(
+            //   controller: loginController.domainController,
+            //   decoration: InputDecoration(
+            //     prefixIcon: Icon(Icons.person_outline_outlined),
+            //     labelText: "Domian",
+            //     hintText: "https://example.com",
+            //     border: OutlineInputBorder(),
+            //   ),
+            // ),
+            // const SizedBox(height: tFormHeight - 20),
             TextFormField(
               controller: loginController.emailController,
               decoration: InputDecoration(

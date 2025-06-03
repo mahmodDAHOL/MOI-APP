@@ -24,7 +24,8 @@ class LoginController extends GetxController {
 
   void loginUser(BuildContext context) async {
     final prefs = await sharedPreferencesController.prefs;
-    String domain = domainController.text;
+    String domain = 'http://moi-mis.gov.sy';
+    // String domain = domainController.text;
     // final exists = await urlExists(domain);
     // if (exists) {
     if (emailController.text.isNotEmpty && passwordController.text.isNotEmpty) {

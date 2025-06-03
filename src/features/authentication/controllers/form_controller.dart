@@ -155,10 +155,13 @@ class FormController extends GetxController {
     int tabBreakCount = 0;
     String? previousTabName;
 
+    bool hasDefaultTab = false;
+
     for (var entry in fieldsOrder.asMap().entries) {
       int index = entry.key;
       String? fieldName = entry.value;
       if (fieldName == null) continue;
+
       var prevFieldName;
       bool condition;
       try {
@@ -168,8 +171,9 @@ class FormController extends GetxController {
         prevFieldName = null;
         condition = true;
       }
+
       if (fullForm) {
-        // handle special case where no Tab Break at first field, instead Section break
+        // Handle special case where no Tab Break at first field, instead Section break
         if (fields.isEmpty &&
             fieldMap[fieldName]['fieldtype'] == 'Section Break' &&
             condition) {
@@ -184,21 +188,32 @@ class FormController extends GetxController {
 
           if (tabBreakCount > 1 && previousTabName != null) {
             formTabs[previousTabName] = fields;
-            fields = []; // Reset for new section
+            fields = [];
           } else {
-            // First Tab Break → reset fields
             fields = [];
           }
 
-          previousTabName = field!.label; // Save current tab name
+          previousTabName = field?.label;
           continue;
+        }
+
+        // First field is NOT Tab Break or Section Break → create default tab
+        if (fields.isEmpty &&
+            fieldMap[fieldName]['fieldtype'] != 'Tab Break' &&
+            fieldMap[fieldName]['fieldtype'] != 'Section Break' &&
+            !hasDefaultTab) {
+          previousTabName = 'Details';
+          tabBreakCount = 1;
+          hasDefaultTab = true;
         }
 
         Map<String, dynamic> fieldMeta = fieldMap[fieldName] ?? {};
         final String fieldTypeStr = fieldMeta['fieldtype'] ?? 'Unknown';
+
         if (fieldTypeStr == "Table") {
           fieldMeta = await getTableFieldsFromUserSettings(doctype, fieldMeta);
         }
+
         FormFieldData? field = await getFormFieldsData(
           fieldName,
           fieldMeta,
@@ -214,17 +229,17 @@ class FormController extends GetxController {
         if (fieldTypeStr == "Tab Break") {
           tabBreakCount++;
 
-          if (tabBreakCount >= 1 && previousTabName != null) {
+          if (tabBreakCount > 1 && previousTabName != null) {
             formTabs[previousTabName] = fields;
             fields = []; // Reset for new section
           } else {
-            // First Tab Break → reset fields
-            fields = [];
+            fields = []; // First Tab Break → reset fields
           }
 
-          previousTabName = field!.label; // Save current tab name
+          previousTabName = field?.label;
           continue;
         }
+
         if (field != null) {
           fields.add(field);
         }
@@ -242,10 +257,14 @@ class FormController extends GetxController {
         }
       }
     }
+
     if (fullForm) {
       // After loop: add last section if any
       if (tabBreakCount >= 1 && previousTabName != null && fields.isNotEmpty) {
         formTabs[previousTabName] = fields;
+      } else if (hasDefaultTab && fields.isNotEmpty) {
+        // If using default tab and there are fields left
+        formTabs['Details'] = fields;
       }
     } else {
       formTabs['Main Form'] = fields;
@@ -408,6 +427,9 @@ class FormController extends GetxController {
     final reportViewUrl = Uri.parse(
       "$domain/api/method/frappe.desk.search.search_link",
     );
+    // if (doctype.contains("From ")){
+    //   doctype = doctype.replaceFirst("From ", "");
+    // }
     Map<String, String> reqBody = {
       'txt': '',
       'doctype': doctype,
