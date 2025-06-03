@@ -179,10 +179,7 @@ class ListViewController extends GetxController {
     }
   }
 
-  Future<bool> getItemInfo(
-    String doctype,
-    String itemName,
-  ) async {
+  Future<bool> getItemInfo(String doctype, String itemName) async {
     final prefs = await sharedPreferencesController.prefs;
     final String? domain = prefs.getString("domain");
     final reportViewUrl = Uri.parse(
@@ -209,7 +206,7 @@ class ListViewController extends GetxController {
           formController.formValues[fieldName] = value;
         }
       }
-    }else{
+    } else {
       return false;
     }
     formController.tableRowValues.refresh();

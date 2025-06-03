@@ -71,10 +71,8 @@ class TableWithAddButton extends StatelessWidget {
     List<dynamic> tableFields =
         field.data.map((tablefield) {
           if (tablefield.type == FieldType.link &&
-              tablefield.options.runtimeType == String) {
-            return tablefield.copyWith(
-              options: controller.searchLink(tablefield.data['label'], doctype),
-            );
+              tablefield.data['options'].runtimeType == String) {
+            return tablefield.copyWith(options: tablefield.data['options']);
           }
           return tablefield;
         }).toList();
@@ -170,29 +168,26 @@ class TableWithAddButton extends StatelessWidget {
   ) {
     switch (field.type) {
       case FieldType.text:
-        return Padding(
-          padding: const EdgeInsets.all(1),
-          child: TextField(
-            onChanged: (text) {
-              Map<String, dynamic> mutableRow = editTableRow(
-                tableFieldName,
-                controller.tableRowValues,
-                rowIndex,
-                colIndex,
-                text,
-              );
-              tableData.addAll(mutableRow);
+        return TextField(
+          onChanged: (text) {
+            Map<String, dynamic> mutableRow = editTableRow(
+              tableFieldName,
+              controller.tableRowValues,
+              rowIndex,
+              colIndex,
+              text,
+            );
+            tableData.addAll(mutableRow);
 
-              controller.tablesData[tableFieldName]!.add(tableData);
+            controller.tablesData[tableFieldName]!.add(tableData);
 
-              controller.tableRowValues.refresh();
-              controller.tablesData.refresh();
-            },
+            controller.tableRowValues.refresh();
+            controller.tablesData.refresh();
+          },
 
-            textAlign: TextAlign.center,
-            controller: TextEditingController(text: value.toString()),
-            decoration: const InputDecoration(border: InputBorder.none),
-          ),
+          textAlign: TextAlign.center,
+          controller: TextEditingController(text: value.toString()),
+          decoration: const InputDecoration(border: InputBorder.none),
         );
       case FieldType.select:
         return Obx(() {
@@ -238,12 +233,12 @@ class TableWithAddButton extends StatelessWidget {
       case FieldType.link:
         return Obx(() {
           return ListTile(
-            title: Text(field.label ?? field.fieldName),
+            title: Text(field.data['label'] ?? field.data['fieldName']),
             subtitle: Text(getLinkValue(tableFieldName, rowIndex, colIndex)),
 
             trailing: Icon(Icons.arrow_drop_down),
             onTap: () async {
-              List<String> options = await field.options!;
+              List options = await field.data['options']!;
               showModalBottomSheet(
                 context: context,
                 builder: (context) {
@@ -303,6 +298,7 @@ class TableWithAddButton extends StatelessWidget {
                               fullForm: false,
                               forEditing: false,
                             ),
+                            preventDuplicates: false,
                           );
                         },
                       ),

@@ -21,7 +21,7 @@ class SplashScreen extends StatelessWidget {
         child: Stack(
           children: [
             TFadeInAnimation(
-              durationInMs: 1600,
+              durationInMs: 800,
               animate: TAnimateposition(
                 topAfter: tDefaultSize,
                 topBefor: -30,
@@ -43,13 +43,13 @@ class SplashScreen extends StatelessWidget {
               ),
             ),
             TFadeInAnimation(
-              durationInMs: 1600,
+              durationInMs: 800,
               animate: TAnimateposition(bottomBefor: 0, bottomAfter: 100),
               child: Image(image: AssetImage(tSplashImage)),
             ),
 
             TFadeInAnimation(
-              durationInMs: 2400,
+              durationInMs: 1200,
               animate: TAnimateposition(
                 bottomBefor: 0,
                 bottomAfter: 60,
