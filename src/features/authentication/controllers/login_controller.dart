@@ -63,7 +63,7 @@ class LoginController extends GetxController {
             await prefs.setString('expirationDate', expirationDateStr);
             await prefs.setString('loggedin', 'true');
             await prefs.setString('domain', domain);
-            Get.to(() => HomePage());
+            Get.to(() => HomePage(app:'Home'));
           } else {
             print(
               "Failed to fetch dashboard page. Status code: ${dashboardResponse.statusCode}",

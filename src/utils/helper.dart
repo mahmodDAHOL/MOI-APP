@@ -20,7 +20,7 @@ class Session {
     return response;
   }
 
-  Future<http.Response> post(Uri url , {Map<String, String>? body}) async {
+  Future<http.Response> post(Uri url, {Map<String, String>? body}) async {
     http.Response response = await http.post(url, headers: headers, body: body);
     _updateCookies(response.headers);
     return response;
@@ -47,38 +47,39 @@ class Session {
   }
 }
 
-Future<Map<String, dynamic>?> getDesktopPage(String domain) async {
+Future<Map<String, dynamic>?> getDesktopPage(String domain, String app) async {
   Session session = Get.find<Session>();
 
-  try {
-    final homeUrl = Uri.parse("$domain/app/home");
-    final homeResponse = await session.get(homeUrl);
-    final homeHtmlContent = homeResponse.body;
+  final homeUrl = Uri.parse("$domain/app/$app");
+  final homeResponse = await session.get(homeUrl);
+  final homeHtmlContent = homeResponse.body;
 
-    final frappeBootData = _extractFrappeBoot(homeHtmlContent);
-    if (frappeBootData == null) {
-      print("Failed to extract frappe.boot data.");
-      return null;
-    }
-
-    final allowedWorkspaces = frappeBootData['allowed_workspaces'][0];
-    final workspaceData = jsonEncode(allowedWorkspaces);
-    final postData = {'page': workspaceData};
-
-    // Fetch desktop page
-    final desktopPageUrl = Uri.parse(
-      "$domain/api/method/frappe.desk.desktop.get_desktop_page",
-    );
-    final desktopPageResponse = await session.post(
-      desktopPageUrl,
-      body: postData,
-    );
-
-    return jsonDecode(desktopPageResponse.body);
-  } catch (e) {
-    print("An error occurred: $e");
+  final frappeBootData = _extractFrappeBoot(homeHtmlContent);
+  if (frappeBootData == null) {
+    print("Failed to extract frappe.boot data.");
     return null;
   }
+
+  List allowedWorkspaces = frappeBootData['allowed_workspaces'];
+
+  List allowedWorkspace =
+      allowedWorkspaces.where((map) {
+        var content = jsonDecode(map['content']);
+        return content[0]['data']['onboarding_name'] == app;
+      }).toList();
+  final workspaceData = jsonEncode(allowedWorkspace.first);
+  final postData = {'page': workspaceData};
+
+  // Fetch desktop page
+  final desktopPageUrl = Uri.parse(
+    "$domain/api/method/frappe.desk.desktop.get_desktop_page",
+  );
+  final desktopPageResponse = await session.post(
+    desktopPageUrl,
+    body: postData,
+  );
+
+  return jsonDecode(desktopPageResponse.body);
 }
 
 String? extractCsrfToken(String htmlContent) {
@@ -312,6 +313,7 @@ bool toBool(String? value) {
   if (value == null) return false;
   return value == '1';
 }
+
 int toIntBool(bool? value) {
   if (value == null) return 0;
   return value ? 1 : 0;
@@ -332,14 +334,219 @@ List removeTableMetadata(List data) {
     'doctype',
   ];
 
-  List editedData = data.map((row) {
-    if (row is Map) {
-      final Map copy = Map.from(row);
-      copy.removeWhere((key, value) => keysToRemove.contains(key));
-      return copy;
-    }
-    return row;
-  }).toList();
+  List editedData =
+      data.map((row) {
+        if (row is Map) {
+          final Map copy = Map.from(row);
+          copy.removeWhere((key, value) => keysToRemove.contains(key));
+          return copy;
+        }
+        return row;
+      }).toList();
 
   return editedData;
+}
+
+final Map<String, IconData> erpnextToFlutterIcons = {
+  'py': Icons.insert_drive_file,
+  'light-bulb': Icons.lightbulb_outline,
+  'flame': Icons.whatshot,
+  'repo-template': Icons.copy,
+  'repo-deleted': Icons.delete_forever,
+  'arrow-right': Icons.arrow_forward,
+  '-entry-fill': Icons.edit,
+  'filter': Icons.filter_list,
+  'project-symlink': Icons.link,
+  'pivot-column': Icons.table_chart,
+  'kebab-horizontal': Icons.more_horiz,
+  'search': Icons.search,
+  'check-circle': Icons.check_circle_outline,
+  'location': Icons.location_on,
+  'heart': Icons.favorite_border,
+  'discussion-duplicate': Icons.content_copy,
+  'package-dependencies': Icons.schema,
+  'git-merge': Icons.merge_type,
+  'arrow-up': Icons.arrow_upward,
+  'diff-removed': Icons.remove_circle_outline,
+  'sparkle-fill': Icons.auto_awesome,
+  'package-dependents': Icons.list_alt,
+  'diff-renamed': Icons.drive_file_rename_outline,
+  'lock': Icons.lock_outline,
+  'beaker': Icons.science_outlined,
+  'feed-pull-request-closed': Icons.block,
+  'fiscal-host': Icons.account_balance_wallet,
+  'check': Icons.check_box_outline_blank,
+  'checklist': Icons.playlist_add_check,
+  'bookmark-slash-fill': Icons.bookmark_remove,
+  'file-moved': Icons.file_present,
+  'tab': Icons.tab,
+  'rel-file-path': Icons.folder_open,
+  'unmute': Icons.volume_up,
+  'heading': Icons.text_fields,
+  'feed-repo': Icons.source,
+  'feed-person': Icons.person_outline,
+  'git-merge-queue': Icons.queue,
+  'discussion-outdated': Icons.warning_amber_rounded,
+  'cross-reference': Icons.link,
+  'ue-tracks': Icons.playlist_play,
+  'trashed': Icons.delete_sweep,
+  'strikethrough': Icons.format_strikethrough,
+  'bookmark': Icons.bookmark_outline,
+  'smiley': Icons.sentiment_satisfied_alt,
+  'chevron-up': Icons.keyboard_arrow_up,
+  'play': Icons.play_arrow,
+  'git-commit': Icons.commit,
+  'hourglass': Icons.hourglass_empty,
+  'verified': Icons.verified_user,
+  'list-unordered': Icons.format_list_bulleted,
+  'diff-added': Icons.add_circle_outline,
+  'diamond': Icons.diamond_outlined,
+  'quote': Icons.format_quote,
+  'trash': Icons.delete_outline,
+  'grabber': Icons.drag_handle,
+  'milestone': Icons.flag,
+  'move-to-end': Icons.last_page,
+  'history': Icons.history,
+  'fold': Icons.unfold_less,
+  'feed-discussion': Icons.chat_bubble_outline,
+  'reply': Icons.reply,
+  'accessibility-inset': Icons.accessibility_new,
+  'bell': Icons.notifications_outlined,
+  'fold-down': Icons.expand_more,
+  'ruby': Icons.settings,
+  'lock-fill': Icons.lock,
+  'bell-slash': Icons.notifications_off,
+  'undo': Icons.undo,
+  'graph': Icons.show_chart,
+  'home': Icons.home,
+  'sync': Icons.sync,
+  'number': Icons.looks_one,
+  'rocket': Icons.rocket_launch,
+  'hubot': Icons.android,
+  'megaphone': Icons.campaign,
+  'paperclip': Icons.attach_file,
+  'file-zip': Icons.archive,
+  'mute': Icons.volume_off,
+  'report': Icons.report,
+  'shield-check': Icons.shield,
+  'de': Icons.code,
+  'arrow-switch': Icons.swap_horiz,
+  'broadcast': Icons.radio,
+  'key': Icons.key,
+  'git-compare': Icons.compare_arrows,
+  'package': Icons.inventory,
+  'project-roadmap': Icons.map,
+  'project': Icons.work_outline,
+  'arrow-up-right': Icons.open_in_new,
+  'command-palette': Icons.dashboard_customize,
+  'share': Icons.share,
+  'file-directory-symlink': Icons.folder_special,
+  'north-star': Icons.star_half,
+  'heart-fill': Icons.favorite,
+  'database': Icons.storage,
+  'mention': Icons.alternate_email,
+  'skip-fill': Icons.skip_next,
+  'gn-out': Icons.logout,
+  'arrow-down': Icons.arrow_downward,
+  'zap': Icons.flash_on,
+  'calendar': Icons.calendar_today,
+  'organization': Icons.people,
+  'shield-lock': Icons.security,
+  'filter-remove': Icons.filter_none,
+  'bookmark-fill': Icons.bookmark,
+  'meter': Icons.speed,
+  'trophy': Icons.emoji_events,
+  'feed-issue-open': Icons.bug_report,
+  'mail': Icons.email,
+  'people': Icons.people,
+  'sponsor-tiers': Icons.workspace_premium,
+  'alert-fill': Icons.error,
+  'markdown': Icons.text_format,
+  'blocked': Icons.block,
+  'rt-desc': Icons.sort_by_alpha,
+  'pause': Icons.pause,
+  'unverified': Icons.cancel,
+  'pencil': Icons.edit,
+  'upload': Icons.upload,
+  'terminal': Icons.terminal,
+  'container': Icons.layers,
+  'person': Icons.person,
+  'thumbsup': Icons.thumb_up,
+  'hash': Icons.tag,
+  'law': Icons.gavel,
+  'repo': Icons.folder_shared,
+  'link-external': Icons.open_in_new,
+  'pin': Icons.push_pin,
+  'unlock': Icons.lock_open,
+  'unread': Icons.mark_email_unread,
+  'diff-modified': Icons.change_circle,
+  'shield': Icons.shield,
+  'desktop-download': Icons.download,
+  'log': Icons.receipt,
+  'redo': Icons.refresh,
+  'plus-circle': Icons.add_circle_outline,
+  'browser': Icons.public,
+  'arrow-left': Icons.arrow_back,
+  'descan': Icons.qr_code_scanner,
+  'repo-pull': Icons.download,
+  'repo-forked': Icons.fork_right,
+  'hare-android': Icons.share,
+  'credit-card': Icons.credit_card,
+  'read': Icons.visibility,
+  'server': Icons.desktop_windows,
+  'infinity': Icons.change_history,
+  'repo-locked': Icons.lock,
+  'file-directory': Icons.folder,
+  'shield-slash': Icons.block,
+  'rows': Icons.view_list,
+  'sign-in': Icons.login,
+  'square-fill': Icons.crop_square,
+  'tag': Icons.sell,
+  'file-diff': Icons.compare_arrows,
+  'paste': Icons.content_paste,
+  'x': Icons.clear,
+  'bell-fill': Icons.notifications_active,
+  'skip': Icons.skip_next,
+  'file-code': Icons.code,
+  'triangle-down': Icons.arrow_drop_down,
+  'typography': Icons.text_fields,
+  'question': Icons.help_outline,
+  'video': Icons.videocam,
+  'back': Icons.arrow_back_ios,
+  'ls': Icons.folder_open,
+  'key-asterisk': Icons.key,
+  'moon': Icons.dark_mode,
+  'apps': Icons.apps,
+  'square': Icons.crop_square,
+  'dash': Icons.horizontal_rule,
+  'support': Icons.support,
+  'integration': Icons.sync,
+  'table_2': Icons.table_chart,
+  'star': Icons.star,
+  'income': Icons.attach_money,
+  'sell': Icons.sell,
+  'accounting': Icons.account_balance,
+  'setting': Icons.settings,
+  'users': Icons.people,
+  'non-profit': Icons.volunteer_activism,
+  'quality': Icons.check_circle_outline,
+  'stock': Icons.store,
+  'buying': Icons.shopping_cart,
+  'getting-started': Icons.start,
+  'file': Icons.insert_drive_file,
+  'list': Icons.list_alt,
+  'hr': Icons.person,
+  'assets': Icons.devices,
+  'website': Icons.language,
+  'quality-3': Icons.verified_user,
+  'assign': Icons.assignment_turned_in,
+  'money-coins-1': Icons.money,
+  'crm': Icons.contacts,
+  'expenses': Icons.receipt,
+  'tool': Icons.build,
+};
+
+String makeFirstLetterSmall(String input) {
+  if (input.isEmpty) return input;
+  return input[0].toLowerCase() + input.substring(1);
 }

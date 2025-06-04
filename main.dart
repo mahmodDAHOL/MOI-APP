@@ -49,7 +49,7 @@ class App extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       defaultTransition: Transition.leftToRightWithFade,
       transitionDuration: const Duration(milliseconds: 500),
-      home: DynamicForm(doctype: "Lead", fullForm: true, forEditing: false),
+      home: HomePage(app: 'Buying'),
     );
   }
 }

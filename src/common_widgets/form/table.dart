@@ -284,7 +284,7 @@ class TableWithAddButton extends StatelessWidget {
                             Icon(Icons.add, size: 20),
                             Expanded(
                               child: Text(
-                                "Create a new ${field.label}",
+                                "Create a new ${field.data['label']}",
                                 softWrap: true,
                                 overflow: TextOverflow.visible,
                               ),

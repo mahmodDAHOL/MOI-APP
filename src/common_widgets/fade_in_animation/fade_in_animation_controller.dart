@@ -26,7 +26,7 @@ class FadeInAnimationController extends GetxController {
     } else {
       DateTime now = DateTime.now();
       if (!expirationDate.isBefore(now)) {
-        Get.offAll(() => HomePage());
+        Get.offAll(() => HomePage(app:'Home'));
       } else {
         Get.offAll(() => LoginScreen());
       }
