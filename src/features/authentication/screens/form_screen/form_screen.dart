@@ -303,7 +303,7 @@ class _DynamicFormState extends State<DynamicForm> {
         } else {
           return TextButton(
             onPressed: () {
-              Get.to(
+              Get.off(
                 () => DynamicForm(
                   doctype: widget.doctype,
                   fullForm: true,

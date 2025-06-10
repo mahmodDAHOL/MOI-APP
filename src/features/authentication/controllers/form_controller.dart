@@ -487,7 +487,7 @@ class FormController extends GetxController {
       );
       String docJson = jsonEncode(fullDoc);
       String docDataEncoded = Uri.encodeComponent(docJson);
-      String updatedJsonString = 'doc=$docDataEncoded&action=Save';
+      String updatedJsonString = 'doc=$docDataEncoded&action=Edit';
       final headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
         ...session.headers,
@@ -500,7 +500,7 @@ class FormController extends GetxController {
       );
       if (response.statusCode == 200) {
         isSubmitting.value = false;
-        Get.to(() => ListViewScreen(doctype: doctype));
+        Get.off(() => ListViewScreen(doctype: doctype));
       } else {
         // String errorMessage = jsonDecode(response.body)['exception'];
         isSubmitting.value = false;
@@ -513,7 +513,7 @@ class FormController extends GetxController {
       response = await session.post(reportViewUrl, body: reqBody);
       if (response.statusCode == 200) {
         isSubmitting.value = false;
-        Get.to(() => ListViewScreen(doctype: doctype));
+        Get.off(() => ListViewScreen(doctype: doctype));
       } else {
         String errorMessage = jsonDecode(response.body)['exception'];
         isSubmitting.value = false;

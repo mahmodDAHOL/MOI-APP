@@ -171,7 +171,7 @@ class ListViewScreen extends StatelessWidget {
                     reportData[listViewController.selectedRowIndices.first];
                 bool success = await listViewController.getItemInfo(
                   doctype,
-                  selectedItem['item name'],
+                  selectedItem['name'],
                 );
                 if (success) {
                   Get.to(

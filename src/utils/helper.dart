@@ -64,8 +64,7 @@ Future<Map<String, dynamic>?> getDesktopPage(String domain, String app) async {
 
   List allowedWorkspace =
       allowedWorkspaces.where((map) {
-        var content = jsonDecode(map['content']);
-        return content[0]['data']['onboarding_name'] == app;
+        return map['title'] == app;
       }).toList();
   final workspaceData = jsonEncode(allowedWorkspace.first);
   final postData = {'page': workspaceData};

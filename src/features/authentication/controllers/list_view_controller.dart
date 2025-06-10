@@ -54,7 +54,8 @@ class ListViewController extends GetxController {
   ) async {
     List<String> entriesToDelete =
         selectedRowIndices.map<String>((idx) {
-          return reportData[idx]['item name'];
+          String name = reportData[idx]['name']; // primary key
+          return name;
         }).toList();
     final prefs = await sharedPreferencesController.prefs;
     final String? domain = prefs.getString("domain");
@@ -85,8 +86,8 @@ class ListViewController extends GetxController {
     List<Map<String, dynamic>>? listviewFields = await getListviewFields(
       doctype,
     );
-
     if (listviewFields != null) {
+      listviewFields.insert(0, {"fieldname":"name"});
       // Use the filter value in the request
       String fields =
           '["${listviewFields.map((field) => "`tab$doctype`.`${field['fieldname']}`").join('","')}"]'

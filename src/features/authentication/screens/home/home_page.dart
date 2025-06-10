@@ -8,6 +8,7 @@ import 'package:moi_app/src/features/authentication/screens/login/login_screen.d
 import 'package:moi_app/src/utils/helper.dart';
 
 import '../../../../common_widgets/form/collapsable_list_widget.dart';
+import '../../../../constants/colors.dart';
 import '../../controllers/shared_preferences_controller.dart';
 
 class HomePage extends StatelessWidget {
@@ -32,9 +33,17 @@ class HomePage extends StatelessWidget {
           appBar: AppBar(
             title: Row(
               children: [
-                // Icon(Icons.home, size: 28),
-                // SizedBox(width: 8),
-                Text(homeController.app.value, style: TextStyle(fontSize: 20)),
+                Container(
+                  width: 200,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      app,
+                      softWrap: true,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
                 Spacer(),
                 IconButton(
                   icon: Icon(Icons.logout),
@@ -118,7 +127,7 @@ class HomePage extends StatelessWidget {
       ),
       onTap: () {
         Navigator.of(context).pop(); // Close drawer
-        Get.to(() => HomePage(app: title), preventDuplicates: false);
+        Get.off(() => HomePage(app: title), preventDuplicates: false);
       },
     );
   }
@@ -140,22 +149,95 @@ class HomePage extends StatelessWidget {
         return ListView.builder(
           itemCount: items.length,
           itemBuilder: (context, index) {
-            if (items[index]['type'] == 'doctype') {
-              return ListTile(
-                title: Text(items[index]['link_to'].toString()),
-                onTap: () {
-                  Get.to(
-                    () => ListViewScreen(
-                      doctype: items[index]['link_to'].toString(),
+            final item = items[index];
+            final primaryColor = tPrimaryColor;
+
+            switch (item['type']) {
+              case 'DocType':
+                return Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: ListTile(
+                    tileColor: Colors.white,
+                    leading: Icon(Icons.description, color: Colors.grey[600]),
+                    title: Text(
+                      item['link_to'].toString(),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: primaryColor,
+                      ),
                     ),
-                  );
-                },
-              );
-            } else {
-              return ListTile(
-                title: Text(items[index]['label'].toString()),
-                onTap: () {},
-              );
+                    onTap: () {
+                      Get.to(
+                        () =>
+                            ListViewScreen(doctype: item['link_to'].toString()),
+                      );
+                    },
+                  ),
+                );
+              case 'URL':
+                return Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: ListTile(
+                    tileColor: Colors.white,
+                    leading: Icon(Icons.link, color: Colors.grey[600]),
+                    title: Text(
+                      item['label'].toString(),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: primaryColor,
+                      ),
+                    ),
+                    onTap: () {
+                      homeController.launchUrl(Uri.parse(item['url']));
+                    },
+                  ),
+                );
+              case 'Page':
+                return Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: ListTile(
+                    tileColor: Colors.white,
+                    leading: Icon(Icons.pages, color: Colors.grey[600]),
+                    title: Text(
+                      item['label'].toString(),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: primaryColor,
+                      ),
+                    ),
+                    onTap: () {},
+                  ),
+                );
+              default:
+                String type = item['type'];
+                String type2 = item['type'];
             }
           },
         );
