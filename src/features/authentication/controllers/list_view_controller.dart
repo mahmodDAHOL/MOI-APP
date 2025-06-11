@@ -87,7 +87,7 @@ class ListViewController extends GetxController {
       doctype,
     );
     if (listviewFields != null) {
-      listviewFields.insert(0, {"fieldname":"name"});
+      listviewFields.insert(0, {"fieldname": "name"});
       // Use the filter value in the request
       String fields =
           '["${listviewFields.map((field) => "`tab$doctype`.`${field['fieldname']}`").join('","')}"]'
@@ -168,15 +168,16 @@ class ListViewController extends GetxController {
       );
       final response = await session.post(reportViewUrl, body: reqBody);
       Map<String, dynamic> data = jsonDecode(response.body);
-      List fields = data["message"];
+      if (data.containsKey("message") && data["message"] != null) {
+        List fields = data["message"];
+        // Transform the list into a list of maps
+        List<Map<String, dynamic>> defaultFields =
+            fields.map((field) {
+              return {"fieldname": field, "label": field.replaceAll("_", " ")};
+            }).toList();
 
-      // Transform the list into a list of maps
-      List<Map<String, dynamic>> defaultFields =
-          fields.map((field) {
-            return {"fieldname": field, "label": field.replaceAll("_", " ")};
-          }).toList();
-
-      return defaultFields;
+        return defaultFields;
+      }
     }
   }
 

@@ -25,7 +25,14 @@ class ListViewScreen extends StatelessWidget {
               MainAxisAlignment
                   .spaceBetween, // Ensures the Row doesn't take full width
           children: [
-            Text(doctype),
+            Container(
+                width: 200,
+                child: Text(
+                  doctype,
+                  softWrap: true,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             InkWell(
               onTap: () {
                 formController.reset();

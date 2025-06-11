@@ -23,53 +23,48 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     List<Widget> widgetList = [
       Text("No Charts Exist"),
-      _buildDesktopPageFutureBuilder(app),
-      Text("No Cards Exist"),
+      _buildShortcutsPageFutureBuilder(app),
+      _buildCartsPageFutureBuilder(app),
     ];
 
-    return Obx(
-      () => SafeArea(
-        child: Scaffold(
-          appBar: AppBar(
-            title: Row(
-              children: [
-                Container(
-                  width: 200,
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      app,
-                      softWrap: true,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
+    return SafeArea(
+      child: Scaffold(
+        appBar: AppBar(
+          title: Row(
+            children: [
+              Container(
+                width: 200,
+                child: Text(
+                  app,
+                  softWrap: true,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                Spacer(),
-                IconButton(
-                  icon: Icon(Icons.logout),
-                  onPressed: () async {
-                    final prefs = await sharedPreferencesController.prefs;
-                    DateTime now = DateTime.now();
-                    prefs.setString('expirationDate', now.toString());
-                    await prefs.setString('loggedin', 'false');
-                    session.headers['X-Frappe-CSRF-Token'] = 'None';
-                    String headersencoded = json.encode(session.headers);
-                    prefs.setString('headers', headersencoded);
-                    Get.off(LoginScreen());
-                  },
-                ),
-                SizedBox(width: 8),
-              ],
-            ),
+              ),
+              Spacer(),
+              IconButton(
+                icon: Icon(Icons.logout),
+                onPressed: () async {
+                  final prefs = await sharedPreferencesController.prefs;
+                  DateTime now = DateTime.now();
+                  prefs.setString('expirationDate', now.toString());
+                  await prefs.setString('loggedin', 'false');
+                  session.headers['X-Frappe-CSRF-Token'] = 'None';
+                  String headersencoded = json.encode(session.headers);
+                  prefs.setString('headers', headersencoded);
+                  Get.off(LoginScreen());
+                },
+              ),
+              SizedBox(width: 8),
+            ],
           ),
-          drawer: _buildDrawer(context),
-          bottomNavigationBar: Obx(() {
-            return homeController.bottomNavigationBar;
-          }),
-          body: Obx(() {
-            return Center(child: widgetList[homeController.myIndex.value]);
-          }),
         ),
+        drawer: _buildDrawer(context),
+        bottomNavigationBar: Obx(() {
+          return homeController.bottomNavigationBar;
+        }),
+        body: Obx(() {
+          return Center(child: widgetList[homeController.myIndex.value]);
+        }),
       ),
     );
   }
@@ -133,7 +128,7 @@ class HomePage extends StatelessWidget {
   }
 
   // 📦 Future Builder for Dynamic Content
-  Widget _buildDesktopPageFutureBuilder(String app) {
+  Widget _buildShortcutsPageFutureBuilder(String app) {
     return FutureBuilder<Map<String, dynamic>?>(
       future: homeController.fetchDesktopPageElements(app),
       builder: (context, snapshot) {
@@ -276,5 +271,106 @@ class HomePage extends StatelessWidget {
       }
     }
     return itemsList;
+  }
+
+  _buildCartsPageFutureBuilder(String app) {
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: homeController.fetchDesktopPageElements(app),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (!snapshot.hasData || snapshot.data!['message'] == null) {
+          return Center(child: Text('No data available.'));
+        }
+
+        final items = snapshot.data!['message']['cards']['items'];
+        return ListView.builder(
+          itemCount: items.length,
+          itemBuilder: (context, index) {
+            final item = items[index];
+            final primaryColor = tPrimaryColor;
+            return _buildSingleCard(item);
+          },
+        );
+      },
+    );
+  }
+
+  Card _buildSingleCard(Map<String, dynamic> item) {
+    return Card(
+      elevation: 6,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Title
+            Text(
+              item['label'],
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: tPrimaryColor, // Themed primary color
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Divider for separation
+            const Divider(height: 1, thickness: 1, color: Colors.grey),
+
+            const SizedBox(height: 12),
+
+            // Scrollable list of links
+            SizedBox(
+              height: 180,
+              child: ListView.separated(
+                itemCount: item['links'].length,
+                itemBuilder: (context, index) {
+                  final link = item['links'][index];
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Center(
+                      child: Text(
+                        // "${link['label']} ${link['onboard']} ${link['link_type']}",
+                        link['label'],
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                    onTap: () {
+                      if (link['is_query_report'] == 1) {
+                      } else {
+                        link;
+                        Get.to(
+                          () => ListViewScreen(
+                            doctype: link['link_to'].toString(),
+                          ),
+                        );
+                      }
+                    },
+                  );
+                },
+                separatorBuilder:
+                    (context, index) => const Divider(
+                      height: 1,
+                      thickness: 0.5,
+                      indent: 30,
+                      endIndent: 0,
+                      color: Colors.grey,
+                    ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
