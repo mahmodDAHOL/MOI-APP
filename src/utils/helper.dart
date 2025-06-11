@@ -549,3 +549,25 @@ String makeFirstLetterSmall(String input) {
   if (input.isEmpty) return input;
   return input[0].toLowerCase() + input.substring(1);
 }
+
+String buildQueryString(Map<String, dynamic> params) {
+  final List<String> pairs = [];
+
+  void addPair(String key, dynamic value) {
+    if (value == null) return;
+
+    String encodedValue;
+    if (value is List || value is Map) {
+      // Convert List/Map to JSON string then URL encode
+      encodedValue = Uri.encodeComponent(jsonEncode(value));
+    } else {
+      encodedValue = Uri.encodeComponent(value.toString());
+    }
+
+    pairs.add('${Uri.encodeComponent(key)}=$encodedValue');
+  }
+
+  params.forEach(addPair);
+
+  return pairs.join('&');
+}
