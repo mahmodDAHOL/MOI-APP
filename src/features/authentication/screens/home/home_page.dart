@@ -88,14 +88,23 @@ class HomePage extends StatelessWidget {
           child: ListView(
             padding: EdgeInsets.zero,
             children: [
-              DrawerHeader(
-                decoration: BoxDecoration(color: Colors.blue),
-                child: Text(
-                  'Navigation',
-                  style: TextStyle(color: Colors.white, fontSize: 20),
+              if (_buildMenuItems(context, data).privateWorkspaces.isNotEmpty)
+                CollapsibleWidget(
+                  header: "PRIVATE",
+                  initiallyExpanded: true,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: _buildMenuItems(context, data).privateWorkspaces,
+                  ),
+                ),
+              CollapsibleWidget(
+                header: "PUBLIC",
+                initiallyExpanded: true,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: _buildMenuItems(context, data).publicWorkspaces,
                 ),
               ),
-              ..._buildMenuItems(context, data),
             ],
           ),
         );
@@ -103,7 +112,6 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // 🔘 Reusable Menu Item
   Widget _buildMenuItem(
     BuildContext context,
     String title,
@@ -128,36 +136,106 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  List<Widget> _buildMenuItems(BuildContext context, List data) {
-    List<Widget> itemsList = [];
+  Workspaces _buildMenuItems(BuildContext context, List data) {
     final Map<String, List<Widget>> children = {};
+
+    // Step 1: Build child items map
     for (var entry in data) {
       String parent = entry['parent_page'] ?? '';
       String name = entry['name'] ?? '';
-      if (parent.isNotEmpty && parent != name) {
+
+      if (_isChildEntry(parent, name)) {
         children
             .putIfAbsent(parent, () => [])
             .add(_buildMenuItem(context, name, '', entry['icon'], true));
       }
     }
+
+    // Step 2: Build public and private workspace lists
+    final List<Widget> publicWorkspaces = [];
+    final List<Widget> privateWorkspaces = [];
+
     for (var entry in data) {
       String name = entry['name'];
+
       if (children.containsKey(name)) {
-        Widget item = CollapsibleWidget(
-          header: name,
-          initiallyExpanded: true,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: children[name] ?? [],
-          ),
+        _buildParentItem(context, name, children[name]!).maybeAddTo(
+          entry,
+          homeController.currentUserEmail,
+          publicWorkspaces,
+          privateWorkspaces,
         );
-        itemsList.add(item);
       }
-      if (entry['parent_page'].isEmpty && !children.containsKey(name)) {
-        Widget item = _buildMenuItem(context, name, '', entry['icon'], false);
-        itemsList.add(item);
+
+      if (_isStandaloneEntry(entry, name, children)) {
+        final item = _buildMenuItem(context, name, '', entry['icon'], false);
+        if (_isPrivateEntry(entry, homeController.currentUserEmail)) {
+          privateWorkspaces.add(item);
+        } else {
+          publicWorkspaces.add(item);
+        }
       }
     }
-    return itemsList;
+
+    return Workspaces(
+      privateWorkspaces: privateWorkspaces,
+      publicWorkspaces: publicWorkspaces,
+    );
   }
+
+  // Helper to check if it's a child entry
+  bool _isChildEntry(String parent, String name) =>
+      parent.isNotEmpty && parent != name;
+
+  // Helper to build parent collapsible widget
+  Widget _buildParentItem(
+    BuildContext context,
+    String header,
+    List<Widget> childrenList,
+  ) {
+    return CollapsibleWidget(
+      header: header,
+      initiallyExpanded: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: childrenList,
+      ),
+    );
+  }
+
+  // Helper to check if standalone
+  bool _isStandaloneEntry(
+    entry,
+    String name,
+    Map<String, List<Widget>> children,
+  ) => entry['parent_page'].isEmpty && !children.containsKey(name);
+}
+
+// Helper to determine if it's private
+bool _isPrivateEntry(entry, String? currentUserEmail) =>
+    entry['for_user'] != null &&
+    entry['for_user'].toString().toLowerCase() ==
+        currentUserEmail?.toLowerCase();
+
+// Extension to add widgets conditionally to lists
+extension MaybeAddTo on Widget {
+  void maybeAddTo(
+    entry,
+    String? currentUserEmail,
+    List<Widget> publicList,
+    List<Widget> privateList,
+  ) {
+    if (_isPrivateEntry(entry, currentUserEmail)) {
+      privateList.add(this);
+    } else {
+      publicList.add(this);
+    }
+  }
+}
+
+class Workspaces {
+  final List<Widget> privateWorkspaces;
+  final List<Widget> publicWorkspaces;
+
+  Workspaces({required this.privateWorkspaces, required this.publicWorkspaces});
 }

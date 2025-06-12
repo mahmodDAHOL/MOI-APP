@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../controllers/chart_controller.dart';
 import '../../controllers/home_controller.dart';
 import 'chart_builder.dart';
 import 'dynamic_list.dart';
 
 Widget buildChartsPageFutureBuilder(String app) {
+  final ChartController chartController = Get.put(ChartController());
   final HomeController homeController = Get.put(HomeController());
 
   return DynamicListBuilder(
@@ -13,10 +15,10 @@ Widget buildChartsPageFutureBuilder(String app) {
     sectionKey: 'charts',
     itemBuilder: (context, index, item) {
       return FutureBuilder<ChartInfo>(
-        future: homeController.getChartInfo(item["chart_name"]),
+        future: chartController.getChartInfo(item["chart_name"]),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            // return const Center(child: CircularProgressIndicator());
+            return Container();
           }
           if (snapshot.hasError) {
             return Center(child: Text("Error: ${snapshot.error}"));
