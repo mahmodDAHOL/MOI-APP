@@ -1,8 +1,11 @@
+import 'dart:math';
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../constants/colors.dart';
+import '../../../../utils/helper.dart';
 import '../../controllers/home_controller.dart';
 
 class ChartBuilderScreen extends StatelessWidget {
@@ -37,36 +40,47 @@ class ChartBuilderScreen extends StatelessWidget {
           SizedBox(
             height: 500,
             width: double.infinity,
-            child: Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              margin: const EdgeInsets.symmetric(horizontal: 8),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child:
-                    chartData.isEmpty
-                        ? const Center(
-                          child: Text(
-                            'No Data Available',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        )
-                        : chartType == 'Bar'
-                        ? _buildBarChart()
-                        : _buildLineChart(),
-              ),
-            ),
+            child:
+                chartData.isEmpty
+                    ? const Center(
+                      child: Text(
+                        'No Data Available',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    )
+                    : Stack(
+                      children: [
+                        // Chart goes here
+                        buildChart(chartType),
+
+                        if (chartData.isNotEmpty &&
+                            ['Donut', 'Pie'].contains(chartType))
+                          LagendBoxWidget(),
+                      ],
+                    ),
           ),
         ],
       ),
     );
+  }
+
+  Widget buildChart(String chartType) {
+    switch (chartType.toLowerCase()) {
+      case 'bar':
+        return _buildBarChart();
+      case 'line':
+        return _buildLineChart();
+      case 'donut':
+      case 'pie':
+        return _buildDonutChart(chartType.toLowerCase());
+      default:
+        return Center(child: Text('Unsupported chart type: $chartType'));
+    }
   }
 
   Widget _buildBarChart() {
@@ -75,22 +89,24 @@ class ChartBuilderScreen extends StatelessWidget {
         barGroups:
             chartData
                 .asMap()
-                .map(
-                  (i, data) => MapEntry(
+                .map((i, data) {
+                  final double rawValue = data.yAxis.toDouble();
+
+                  return MapEntry(
                     i,
                     BarChartGroupData(
                       x: i,
                       barRods: [
                         BarChartRodData(
-                          toY: data.yAxis.toDouble(),
+                          toY: rawValue,
                           color: tPrimaryColor,
                           width: 22,
                           rodStackItems: [],
                         ),
                       ],
                     ),
-                  ),
-                )
+                  );
+                })
                 .values
                 .toList(),
         gridData: const FlGridData(show: false),
@@ -99,25 +115,35 @@ class ChartBuilderScreen extends StatelessWidget {
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 120, // More space for rotated labels
               getTitlesWidget: (value, meta) {
-                final int index = value.toInt();
+                int index = value.toInt();
                 if (index >= 0 && index < chartData.length) {
-                  String label = chartData[index].xAxis;
-                  return _buildBottomLabel(label);
+                  return Text(
+                    chartData[index].xAxis,
+                    style: TextStyle(fontSize: 12),
+                  );
                 }
-                return Container(); // Fallback
+                return Container();
               },
             ),
           ),
-          // leftTitles: AxisTitles(
-          //   sideTitles: SideTitles(
-          //     showTitles: true,
-          //     getTitlesWidget: (value, meta) {
-          //       return Text('${value.toInt()}');
-          //     },
-          //   ),
-          // ),
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 30,
+              interval:
+                  getProperYAxisInterval(
+                    chartData,
+                  ).toDouble(), // Control spacing
+              getTitlesWidget: (value, meta) {
+
+                return Text(
+                  formatLargeNumber(value),
+                  style: const TextStyle(fontSize: 10),
+                );
+              },
+            ),
+          ),
           topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
           rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
         ),
@@ -145,35 +171,33 @@ class ChartBuilderScreen extends StatelessWidget {
         titlesData: FlTitlesData(
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
+              reservedSize: 70,
               showTitles: true,
               getTitlesWidget: (value, meta) {
-                return Text(chartData[value.toInt()].xAxis);
+                // Only show label if the tick is a whole number
+                if (value % 1 == 0) {
+                  int index = value.toInt();
+                  if (index >= 0 && index < chartData.length) {
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 20),
+                      child: Text(
+                        chartData[index].xAxis,
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    );
+                  }
+                }
+                return const SizedBox(); // Hide non-integer ticks
               },
             ),
-            // axisNameWidget: Padding(
-            //   padding: const EdgeInsets.only(top: 8.0),
-            //   child: Text(
-            //     'xAxis',
-            //     style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-            //   ),
-            // ),
           ),
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
+              reservedSize: 60,
               showTitles: true,
               getTitlesWidget: (value, meta) {
                 return Text('${value.toInt()}');
               },
-            ),
-            axisNameWidget: Padding(
-              padding: const EdgeInsets.only(right: 12.0),
-              child: RotatedBox(
-                quarterTurns: -1,
-                child: Text(
-                  'yAxis',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                ),
-              ),
             ),
           ),
           rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
@@ -184,41 +208,109 @@ class ChartBuilderScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomLabel(String label) {
-    bool isLongLabel = label.length > 10;
+  Widget _buildDonutChart(String chartType) {
+    return PieChart(
+      PieChartData(
+        pieTouchData: PieTouchData(
+          touchCallback: (FlTouchEvent event, pieTouchResponse) {},
+        ),
+        borderData: FlBorderData(show: false),
+        sectionsSpace: 0,
+        centerSpaceRadius:
+            chartType == 'pie'
+                ? 0
+                : 40, // Radius for the inner space (donut hole)
+        sections: _buildDonutSections(),
+      ),
+    );
+  }
 
-    return Padding(
-      padding: const EdgeInsets.only(top: 8.0),
-      child:
-          isLongLabel
-              ? Transform.rotate(
-                angle: -1.0, // ~57 degrees
-                child: Text(
-                  label,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              )
-              : Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black,
-                ),
-                textAlign: TextAlign.center,
-              ),
+  List<PieChartSectionData> _buildDonutSections() {
+    return chartData.asMap().entries.map((e) {
+      int index = e.key;
+      AxisData data = e.value;
+
+      final double sectionValue = data.yAxis.toDouble();
+
+      return PieChartSectionData(
+        color: _getSegmentColor(index),
+        value: sectionValue,
+        showTitle: false,
+        radius: 80,
+        titleStyle: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      );
+    }).toList();
+  }
+
+  Color _getSegmentColor(int index) {
+    final List<Color> colors = [
+      Colors.blue,
+      Colors.green,
+      Colors.orange,
+      Colors.purple,
+      Colors.red,
+      Colors.teal,
+    ];
+    return colors[index % colors.length];
+  }
+
+  Widget LagendBoxWidget() {
+    return Positioned(
+      bottom: 16,
+      right: 16,
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.9),
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 5,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children:
+              chartData.map<Widget>((data) {
+                final Color color = _getSegmentColor(chartData.indexOf(data));
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(data.xAxis, style: const TextStyle(fontSize: 12)),
+                    const SizedBox(width: 6),
+                    Text(
+                      data.yAxis.toString(),
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ],
+                );
+              }).toList(),
+        ),
+      ),
     );
   }
 }
 
 class AxisData {
   final String xAxis;
-  final int yAxis;
+  final num yAxis;
 
   AxisData(this.xAxis, this.yAxis);
 }

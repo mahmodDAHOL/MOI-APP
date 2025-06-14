@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -6,6 +7,7 @@ import 'package:html/parser.dart' as parser;
 import 'package:http/http.dart' as http;
 
 import '../features/authentication/models/form_field_model.dart';
+import '../features/authentication/screens/home/chart_builder.dart';
 
 class Session {
   Map<String, String> headers = {};
@@ -570,4 +572,39 @@ String buildQueryString(Map<String, dynamic> params) {
   params.forEach(addPair);
 
   return pairs.join('&');
+}
+
+String formatLargeNumber(double number) {
+  if (number >= 1000) {
+    int inK = (number / 1000).toInt();
+    return '$inK K';
+  } else {
+    if (number <= 1) {
+      return number.toString();
+    } else {
+      return number.toStringAsFixed(0);
+    }
+  }
+}
+
+num getProperYAxisInterval(List<AxisData> chartData) {
+  if (chartData.isEmpty) return 1;
+
+  final num maxValue = chartData.map((d) => d.yAxis).reduce(max);
+
+  // Normalize small values (≤ 1)
+  if (maxValue <= 1) {
+    // Scale up small values to make them readable
+    final scaledMaxValue = maxValue * 100; // Scale by 100 for percentages
+    final desiredTickCount = 8;
+    final interval = (scaledMaxValue / desiredTickCount).ceil() / 100;
+
+    return interval > 0 ? interval : 0.1; // Minimum interval for small values
+  }
+
+  // For larger values (> 1)
+  final desiredTickCount = 8;
+  final interval = (maxValue / desiredTickCount).ceil();
+
+  return interval > 0 ? interval : 1;
 }
