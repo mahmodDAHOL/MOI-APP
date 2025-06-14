@@ -23,7 +23,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     List<Widget> widgetList = [
-      buildChartsPageFutureBuilder(app),
+      buildChartsPage(app),
       buildShortcutsPageFutureBuilder(app),
       buildCartsPageFutureBuilder(app),
     ];
@@ -114,11 +114,12 @@ class HomePage extends StatelessWidget {
 
   Widget _buildMenuItem(
     BuildContext context,
-    String title,
+    String name,
     String? doctype,
     String? icon,
     bool subItem,
   ) {
+    name = name.split('-')[0]; // split for private app case
     return ListTile(
       contentPadding: EdgeInsets.only(left: subItem ? 30 : 10),
       title: Row(
@@ -126,12 +127,14 @@ class HomePage extends StatelessWidget {
           if (icon == "" || icon == null) Icon(Icons.folder),
           Icon(erpnextToFlutterIcons[icon]),
           SizedBox(width: 5),
-          Text(title),
+          Text(name),
         ],
       ),
       onTap: () {
         Navigator.of(context).pop(); // Close drawer
-        Get.off(() => HomePage(app: title), preventDuplicates: false);
+        Get.off(() {
+          return HomePage(app: name); 
+        }, preventDuplicates: false);
       },
     );
   }

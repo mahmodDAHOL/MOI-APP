@@ -1,11 +1,14 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:html/parser.dart' as parser;
 import 'package:http/http.dart' as http;
 
+import '../features/authentication/controllers/shared_preferences_controller.dart';
 import '../features/authentication/models/form_field_model.dart';
+import '../features/authentication/screens/home/chart_builder.dart';
 
 class Session {
   Map<String, String> headers = {};
@@ -49,6 +52,9 @@ class Session {
 
 Future<Map<String, dynamic>?> getDesktopPage(String domain, String app) async {
   Session session = Get.find<Session>();
+  final sharedPreferencesController = Get.put(SharedPreferencesController());
+
+  final prefs = await sharedPreferencesController.prefs;
 
   final homeUrl = Uri.parse("$domain/app/$app");
   final homeResponse = await session.get(homeUrl);
@@ -61,7 +67,9 @@ Future<Map<String, dynamic>?> getDesktopPage(String domain, String app) async {
   }
 
   List allowedWorkspaces = frappeBootData['allowed_workspaces'];
-
+  Map<String, dynamic> sysDefaults = frappeBootData['sysdefaults'];
+  String company = sysDefaults['company'];
+  prefs.setString('company', company);
   List allowedWorkspace =
       allowedWorkspaces.where((map) {
         return map['title'] == app;
@@ -570,4 +578,59 @@ String buildQueryString(Map<String, dynamic> params) {
   params.forEach(addPair);
 
   return pairs.join('&');
+}
+
+String formatLargeNumber(double number) {
+  if (number >= 1000) {
+    int inK = (number / 1000).toInt();
+    return '$inK K';
+  } else if (number >= 1000000) {
+    int inK = (number / 1000000).toInt();
+    return '$inK M';
+  } else {
+    if (number <= 1) {
+      return number.toString();
+    } else {
+      return number.toStringAsFixed(0);
+    }
+  }
+}
+
+
+num getProperYAxisInterval(num maxValue) {
+  if (maxValue >= 5000) return 1000;
+  if (maxValue >= 2000) return 500;
+  if (maxValue >= 500) return 100;
+  if (maxValue >= 200) return 50;
+  if (maxValue >= 100) return 25;
+  if (maxValue >= 50) return 10;
+  if (maxValue >= 20) return 5;
+  if (maxValue >= 10) return 2;
+  if (maxValue >= 5) return 1;
+  return maxValue <= 1 ? 0.5 : 1;
+}
+
+Color hexToColor(String hexString) {
+  // Remove the '#' character if present
+  String cleanedHexString = hexString.replaceAll('#', '');
+
+  // Ensure the string has exactly 6 characters (RGB)
+  assert(cleanedHexString.length == 6, "Hex string must be 6 characters long");
+
+  // Convert to integer and create Color object
+  int hexValue = int.parse(cleanedHexString, radix: 16);
+  return Color(0xFF000000 | hexValue); // 0xFF for full opacity
+}
+
+String? getSource(String input, String chartName) {
+  RegExp regExp = RegExp(r'method:\s*"([^"]+)"');
+  Match? match = regExp.firstMatch(input);
+
+  if (match != null) {
+    String methodValue = match.group(1)!;
+    return methodValue;
+  } else {
+    print("Method not found.");
+    return null;
+  }
 }

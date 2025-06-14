@@ -1,5 +1,8 @@
 import 'dart:convert';
+import 'dart:math';
 
+import 'package:collection/collection.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:moi_app/src/features/authentication/screens/home/home_page.dart';
@@ -10,6 +13,7 @@ import 'package:moi_app/src/utils/theme/theme.dart';
 import 'src/features/authentication/controllers/shared_preferences_controller.dart';
 import 'src/features/authentication/screens/form_screen/form_screen.dart';
 import 'src/utils/helper.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 void main() async {
   Session session = Session();
@@ -49,7 +53,7 @@ class App extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       defaultTransition: Transition.leftToRightWithFade,
       transitionDuration: const Duration(milliseconds: 500),
-      home: HomePage(app: 'testtest'),
+      home: HomePage(app: 'مديرية التنمية الإدارية'),
     );
   }
 }
