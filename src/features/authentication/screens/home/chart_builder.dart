@@ -21,17 +21,23 @@ class ChartBuilderScreen extends StatelessWidget {
   final Map<String, List<AxisData>> chartData;
   final DashboardChart chartMeta;
   Color get color => hexToColor(chartMeta.color);
-  String get firstKey => chartData.keys.first;
+  String? get firstKey {
+    if (chartData.isEmpty) return null;
+    return chartData.keys.first;
+  }
 
   @override
   Widget build(BuildContext context) {
     String chartType = chartMeta.type;
     String chartTitle = chartMeta.chartName;
-    bool showLegend =
-        (['Donut', 'Pie'].contains(chartType) &&
-            chartData[firstKey]!.isNotEmpty) ||
-        (chartType == "Line" && chartData.length > 1) ||
-        (chartType == "Bar" && chartData.length > 1);
+    bool showLegend = false;
+    if (chartData.isNotEmpty) {
+      showLegend =
+          (['Donut', 'Pie'].contains(chartType) &&
+              chartData[firstKey]!.isNotEmpty) ||
+          (chartType == "Line" && chartData.length > 1) ||
+          (chartType == "Bar" && chartData.length > 1);
+    }
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(

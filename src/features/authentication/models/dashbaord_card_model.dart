@@ -1,0 +1,94 @@
+class DashboardCard {
+  final String name;
+  final int docstatus;
+  final int idx;
+  final int isStandard;
+  final String module;
+  final String label;
+  final String function;
+  final String documentType;
+  final int showPrecentageStats;
+  final String statsTimeInterval;
+  final int isPublic;
+  final String type; // This determines chart type: 'Bar', 'Line', 'Donut', etc.
+  final String filtersJson;
+  final String dynamicFiltersJson;
+  final String doctype;
+
+  DashboardCard({
+    required this.name,
+    required this.docstatus,
+    required this.idx,
+    required this.module,
+    required this.label,
+    required this.function,
+    required this.documentType,
+    required this.statsTimeInterval,
+    required this.showPrecentageStats,
+    required this.isPublic,
+    required this.isStandard,
+    required this.type,
+    required this.filtersJson,
+    required this.dynamicFiltersJson,
+    required this.doctype,
+  });
+
+  // Factory method to create object from JSON map
+  factory DashboardCard.fromJson(Map<String, dynamic> json) {
+    return DashboardCard(
+      name: json['name'] ?? '',
+      docstatus: json['docstatus'] ?? 0,
+      idx: json['idx'] ?? 0,
+      module: json['module'] ?? '',
+      label: json['label'] ?? '',
+      function: json['function'] ?? '',
+      documentType: json['document_type'] ?? '',
+      statsTimeInterval: json['stats_time_interval'] ?? '',
+      showPrecentageStats: json['show_precentage_stats'] ?? 0,
+      isPublic: json['is_public'] ?? 0,
+      isStandard: json['is_standard'] ?? 1,
+      type: json['type'] ?? 'Bar', // default chart type
+      filtersJson: json['filters_json'] ?? '[]',
+      dynamicFiltersJson: json['dynamic_filters_json'] ?? '[]',
+      doctype: json['doctype'] ?? '',
+    );
+  }
+    Map<String, dynamic> toJson() {
+    return {
+      'name':name ,
+      'docstatus':docstatus ,
+      'idx': idx,
+      'module':module ,
+      'label':label ,
+      'function':function ,
+      'document_type':documentType ,
+      'stats_time_interval':statsTimeInterval ,
+      'numbershow_precentage_statsOfGroups': showPrecentageStats,
+      'is_public':isPublic ,
+      'is_standard': isStandard,
+      'type': type, // default chart type
+      'filters_json': filtersJson,
+      'dynamic_filters_json': dynamicFiltersJson,
+      'doctype':doctype ,
+    };
+  }
+  factory DashboardCard.fromMap(Map<String, dynamic> map) {
+    return DashboardCard(
+      name: map['name'] ?? '',
+      docstatus: map['docstatus'] ?? 0,
+      idx: map['idx'] ?? 0,
+      module: map['module'] ?? '',
+      label: map['label'] ?? '',
+      function: map['function'] ?? '',
+      documentType: map['document_type'] ?? '',
+      statsTimeInterval: map['stats_time_interval'] ?? '',
+      showPrecentageStats: map['numbershow_precentage_statsOfGroups'] ?? 0,
+      isPublic: map['is_public'] ?? 0,
+      isStandard: map['is_standard'] ?? 1,
+      type: map['type'] ?? 'Bar',
+      filtersJson: map['filters_json'] ?? '[]',
+      dynamicFiltersJson: map['dynamic_filters_json'] ?? '[]',
+      doctype: map['doctype'] ?? '',
+    );
+  }
+}

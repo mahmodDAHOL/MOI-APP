@@ -59,7 +59,7 @@ class HomePage extends StatelessWidget {
             ],
           ),
         ),
-        drawer: _buildDrawer(context),
+        drawer: buildDrawer(context),
         bottomNavigationBar: Obx(() {
           return homeController.bottomNavigationBar;
         }),
@@ -71,7 +71,7 @@ class HomePage extends StatelessWidget {
   }
 
   // Sidebar Drawer
-  Widget _buildDrawer(BuildContext context) {
+  Widget buildDrawer(BuildContext context) {
     return FutureBuilder<Map<String, dynamic>?>(
       future: homeController.getWorkspaceSidebarItems(),
       builder: (context, snapshot) {

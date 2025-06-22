@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:moi_app/src/features/authentication/screens/home/home_page.dart';
 import 'package:moi_app/src/features/authentication/screens/list_view_screen/list_view_screen.dart';
+import 'package:moi_app/src/features/authentication/screens/login/login_screen.dart';
 import 'package:moi_app/src/features/authentication/screens/splash_screen/splash_screen.dart';
 import 'package:moi_app/src/utils/theme/theme.dart';
 
@@ -53,7 +54,7 @@ class App extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       defaultTransition: Transition.leftToRightWithFade,
       transitionDuration: const Duration(milliseconds: 500),
-      home: HomePage(app: 'مديرية التنمية الإدارية'),
+      home: LoginScreen(),
     );
   }
 }

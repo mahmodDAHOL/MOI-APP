@@ -83,6 +83,35 @@ class DashboardChart {
       roles: json['roles'] ?? [],
     );
   }
+    Map<String, dynamic> toJson() {
+    return {
+      'chartName':chartName ,
+      'chartType':chartType ,
+      'useReportChart': useReportChart,
+      'source':source ,
+      'documentType':documentType ,
+      'parentDocumentType':parentDocumentType ,
+      'basedOn':basedOn ,
+      'valueBasedOn':valueBasedOn ,
+      'groupByType':groupByType ,
+      'groupByBasedOn':groupByBasedOn ,
+      'numberOfGroups': numberOfGroups,
+      'isPublic':isPublic ,
+      'timespan':timespan ,
+      'timeInterval':timeInterval ,
+      'customOptions':customOptions ,
+      'reportName':reportName ,
+      'timeseries': timeseries,
+      'type': type, // default chart type
+      'currency':currency ,
+      'filtersJson': filtersJson,
+      'dynamicFiltersJson': dynamicFiltersJson,
+      'color': color,
+      'doctype':doctype ,
+      'yAxis': yAxis,
+      'roles': roles,
+    };
+  }
   factory DashboardChart.fromMap(Map<String, dynamic> map) {
     return DashboardChart(
       chartName: map['chart_name'] ?? '',

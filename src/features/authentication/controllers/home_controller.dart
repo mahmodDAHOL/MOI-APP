@@ -16,13 +16,15 @@ class HomeController extends GetxController {
 
   final sharedPreferencesController = Get.put(SharedPreferencesController());
   final session = Get.find<Session>();
-
-  String? currentUserEmail; 
+  String? domain;
+  String? currentUserEmail;
 
   @override
-  void onInit() {
+  Future<void> onInit() async {
     super.onInit();
     _loadUserData();
+    final prefs = await sharedPreferencesController.prefs;
+    domain = prefs.getString("domain");
   }
 
   Future<void> _loadUserData() async {
@@ -77,5 +79,28 @@ class HomeController extends GetxController {
     } else {
       throw 'Could not launch $url';
     }
+  }
+
+  Future<Map<String, dynamic>?> getDashboardCharts(String dashboardName) async {
+    final postData = {'dashboard_name': dashboardName};
+
+    final url = Uri.parse(
+      "$domain/api/method/frappe.desk.doctype.dashboard.dashboard.get_permitted_charts",
+    );
+    final response = await session.post(url, body: postData);
+
+    return jsonDecode(response.body);
+  }
+  Future<Map<String, dynamic>?> getDashboardCards(String dashboardName) async {
+    final postData = {'dashboard_name': dashboardName};
+
+    final url = Uri.parse(
+      "$domain/api/method/frappe.desk.doctype.dashboard.dashboard.get_permitted_cards",
+    );
+    final response = await session.post(url, body: postData);
+
+    return jsonDecode(response.body);
+
+    
   }
 }
