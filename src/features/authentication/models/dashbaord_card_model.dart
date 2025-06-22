@@ -6,6 +6,7 @@ class DashboardCard {
   final String module;
   final String label;
   final String function;
+  final String aggregateFunctionBasedOn;
   final String documentType;
   final int showPrecentageStats;
   final String statsTimeInterval;
@@ -22,6 +23,7 @@ class DashboardCard {
     required this.module,
     required this.label,
     required this.function,
+    required this.aggregateFunctionBasedOn,
     required this.documentType,
     required this.statsTimeInterval,
     required this.showPrecentageStats,
@@ -42,6 +44,7 @@ class DashboardCard {
       module: json['module'] ?? '',
       label: json['label'] ?? '',
       function: json['function'] ?? '',
+      aggregateFunctionBasedOn: json['aggregate_function_based_on'] ?? '',
       documentType: json['document_type'] ?? '',
       statsTimeInterval: json['stats_time_interval'] ?? '',
       showPrecentageStats: json['show_precentage_stats'] ?? 0,
@@ -61,6 +64,7 @@ class DashboardCard {
       'module':module ,
       'label':label ,
       'function':function ,
+      'aggregate_function_based_on':aggregateFunctionBasedOn ,
       'document_type':documentType ,
       'stats_time_interval':statsTimeInterval ,
       'numbershow_precentage_statsOfGroups': showPrecentageStats,
@@ -80,6 +84,7 @@ class DashboardCard {
       module: map['module'] ?? '',
       label: map['label'] ?? '',
       function: map['function'] ?? '',
+      aggregateFunctionBasedOn: map['aggregate_function_based_on'] ?? '',
       documentType: map['document_type'] ?? '',
       statsTimeInterval: map['stats_time_interval'] ?? '',
       showPrecentageStats: map['numbershow_precentage_statsOfGroups'] ?? 0,

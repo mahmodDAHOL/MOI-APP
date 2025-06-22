@@ -1,8 +1,5 @@
 import 'dart:convert';
-import 'dart:math';
 
-import 'package:collection/collection.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:moi_app/src/features/authentication/screens/home/home_page.dart';
@@ -53,7 +50,7 @@ class App extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       defaultTransition: Transition.leftToRightWithFade,
       transitionDuration: const Duration(milliseconds: 500),
-      home: HomePage(app: 'مديرية التنمية الإدارية'),
+      home: HomePage(app: 'Buying'),
     );
   }
 }
