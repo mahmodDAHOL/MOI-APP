@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:moi_app/src/features/authentication/screens/home/dashboard.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../constants/colors.dart';
 import '../../controllers/home_controller.dart';
@@ -63,8 +64,14 @@ Widget buildShortcutsPageFutureBuilder(String app) {
                   color: primaryColor,
                 ),
               ),
-              onTap: () {
-                homeController.launchUrl(Uri.parse(item['url']));
+              onTap: () async {
+                String? url = item['url'];
+                if (url != null && url.isNotEmpty) {
+                  Uri parsedUrl = Uri.parse(item['url']);
+                  if (await canLaunchUrl(parsedUrl)) {
+                    await launchUrl(parsedUrl);
+                  }
+                }
               },
             ),
           );

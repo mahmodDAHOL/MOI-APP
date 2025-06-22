@@ -18,6 +18,7 @@ class HomeController extends GetxController {
   final session = Get.find<Session>();
   String? domain;
   String? currentUserEmail;
+  bool _isLaunching = false;
 
   @override
   Future<void> onInit() async {
@@ -74,11 +75,14 @@ class HomeController extends GetxController {
   );
 
   Future<void> launchUrl(Uri url) async {
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url);
-    } else {
-      throw 'Could not launch $url';
-    }
+    if (_isLaunching) return;
+  _isLaunching = true;
+
+  if (await canLaunchUrl(url)) {
+    await launchUrl(url,);
+  }
+
+  _isLaunching = false;
   }
 
   Future<Map<String, dynamic>?> getDashboardCharts(String dashboardName) async {
