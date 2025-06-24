@@ -9,6 +9,8 @@ import 'package:moi_app/src/utils/theme/theme.dart';
 
 import 'src/features/authentication/controllers/shared_preferences_controller.dart';
 import 'src/features/authentication/screens/form_screen/form_screen.dart';
+import 'src/features/authentication/screens/home/chart_builder.dart' show PercentageChart;
+import 'src/features/authentication/screens/home/report_screen.dart';
 import 'src/utils/helper.dart';
 import 'package:fl_chart/fl_chart.dart';
 
@@ -50,7 +52,7 @@ class App extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       defaultTransition: Transition.leftToRightWithFade,
       transitionDuration: const Duration(milliseconds: 500),
-      home: HomePage(app: 'Buying'),
+      home: HomePage(app: 'Recruitment'),
     );
   }
 }

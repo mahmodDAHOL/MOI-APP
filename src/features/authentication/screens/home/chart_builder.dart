@@ -111,6 +111,9 @@ class ChartBuilderScreen extends StatelessWidget {
       case 'donut':
       case 'pie':
         return _buildDonutChart(chartType.toLowerCase());
+      case 'percentage':
+        return _buildPecentageChart();
+
       default:
         return Center(child: Text('Unsupported chart type: $chartType'));
     }
@@ -449,11 +452,11 @@ class ChartBuilderScreen extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (chartType == "Line")
-            ...getLineChartLagend()
+            ...getLineChartLegend()
           else if (chartType == "Pie" || chartType == "Donut")
-            ...getPieChartLagend()
+            ...getPieChartLegend()
           else if (chartType == "Bar")
-            ...getBarChartLagend()
+            ...getBarChartLegend()
           else
             Text("Unsupported chart type"),
         ],
@@ -461,7 +464,7 @@ class ChartBuilderScreen extends StatelessWidget {
     );
   }
 
-  List<Widget> getLineChartLagend() {
+  List<Widget> getLineChartLegend() {
     return chartData.entries.map<Widget>((entry) {
       final String lineKey = entry.key;
 
@@ -488,7 +491,7 @@ class ChartBuilderScreen extends StatelessWidget {
     }).toList();
   }
 
-  List<Widget> getPieChartLagend() {
+  List<Widget> getPieChartLegend() {
     return chartData[firstKey]!.map<Widget>((data) {
       final Color color = _getSegmentColor(chartData[firstKey]!.indexOf(data));
       return Row(
@@ -508,7 +511,7 @@ class ChartBuilderScreen extends StatelessWidget {
     }).toList();
   }
 
-  List<Widget> getBarChartLagend() {
+  List<Widget> getBarChartLegend() {
     return chartData.entries.map<Widget>((entry) {
       final String lineKey = entry.key;
       final List<AxisData> dataList = entry.value;
@@ -543,6 +546,90 @@ class ChartBuilderScreen extends StatelessWidget {
         ],
       );
     }).toList();
+  }
+
+  Widget _buildPecentageChart() {
+    final String firstKey =
+        chartData.keys.isNotEmpty ? chartData.keys.first : "";
+    double sum = chartData[firstKey]!.fold(
+      0,
+      (sum, cat) => sum + cat.yAxis.toDouble(),
+    );
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Progress Bar Section
+          SizedBox(height: 16),
+          Stack(
+            alignment: Alignment.centerLeft,
+            children: [
+              // Background Bar
+              Container(
+                height: 20,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(4),
+                  color: Colors.grey[300],
+                ),
+              ),
+
+              // Segmented Bars
+              Row(
+                children:
+                    chartData[firstKey]!.mapIndexed((index, category) {
+                      return Expanded(
+                        flex:
+                            ((category.yAxis / sum) *
+                                    10) //it is * 100 /10 because flex don't accept double  
+                                .toInt(), // X% of total width
+                        child: Container(
+                          height: 20,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(4),
+                            color: _getSegmentColor(index),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+              ),
+            ],
+          ),
+
+          // Legend Section
+          SizedBox(height: 16),
+          Wrap(
+            spacing: 16,
+            runSpacing: 8,
+            children:
+                chartData[firstKey]!.mapIndexed((index, category) {
+                  return _buildLegendItem(
+                    category.xAxis,
+                    _getSegmentColor(index),
+                    category.yAxis.toDouble(),
+                  );
+                }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLegendItem(String label, Color color, double count) {
+    return Row(
+      children: [
+        Container(
+          width: 16,
+          height: 16,
+          decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+        ),
+        SizedBox(width: 8),
+        Text(label == "null" ? "" : label),
+        SizedBox(width: 8),
+        Text(count.toString()),
+      ],
+    );
   }
 }
 

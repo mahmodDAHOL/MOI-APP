@@ -43,11 +43,16 @@ class CardController extends GetxController {
   Future<Map<String, dynamic>> getCardData(DashboardCard cardMeta) async {
     final prefs = await sharedPreferencesController.prefs;
     final String? domain = prefs.getString("domain");
-    List filters = jsonDecode(cardMeta.filtersJson);
+    var filters = jsonDecode(cardMeta.filtersJson);
     Map<String, dynamic> doc = cardMeta.toJson();
-    Uri url = Uri.parse(
-      "$domain/api/method/frappe.desk.doctype.number_card.number_card.get_result",
-    );
+    Uri url;
+    if (doc['method'] == "") {
+      url = Uri.parse(
+        "$domain/api/method/frappe.desk.doctype.number_card.number_card.get_result",
+      );
+    } else {
+      url = Uri.parse("$domain/api/method/${cardMeta.method}");
+    }
     String encodedDoc = Uri.encodeComponent(jsonEncode(doc));
     String encodedFilters = Uri.encodeComponent(jsonEncode(filters));
     final encodedBody = 'doc=$encodedDoc&filters=$encodedFilters';
@@ -62,9 +67,14 @@ class CardController extends GetxController {
 
     Map<String, dynamic> cardData;
     if (resData["message"] != null) {
-      String value = resData["message"].toString();
+      num value;
+      try {
+        value = resData["message"]['value'];
+      } catch (e) {
+        value = resData["message"];
+      }
 
-      cardData = {'name': doc['name'], 'value': value};
+      cardData = {'name': doc['name'], 'value': value.toString()};
     } else {
       cardData = {};
     }

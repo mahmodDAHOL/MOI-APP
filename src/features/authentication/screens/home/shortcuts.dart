@@ -8,6 +8,7 @@ import '../../controllers/home_controller.dart';
 import '../list_view_screen/list_view_screen.dart';
 import 'charts.dart';
 import 'dynamic_list.dart';
+import 'report_screen.dart';
 
 Widget buildShortcutsPageFutureBuilder(String app) {
   final HomeController homeController = Get.put(HomeController());
@@ -124,6 +125,8 @@ Widget buildShortcutsPageFutureBuilder(String app) {
             ),
           );
 
+        case 'Report':
+          return ReportScreen(reportName: item['link_to']);
         default:
           return Container();
       }

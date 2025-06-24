@@ -8,6 +8,7 @@ import '../../controllers/home_controller.dart';
 import '../../controllers/shared_preferences_controller.dart';
 import '../login/login_screen.dart';
 import 'charts.dart';
+import 'dashboard_card.dart';
 import 'dynamic_list.dart';
 
 class Dashboard extends StatelessWidget {
@@ -54,8 +55,8 @@ class Dashboard extends StatelessWidget {
         body: Center(
           child: Column(
             children: [
-              SizedBox(
-                height: 200,
+              Expanded(
+                // height: 200,
                 child: CardRowBuilder(
                   future: homeController.getDashboardCards(dashboardName),
                   sectionKey: null,
@@ -69,6 +70,7 @@ class Dashboard extends StatelessWidget {
                   future: homeController.getDashboardCharts(dashboardName),
                   sectionKey: null,
                   itemBuilder: (context, index, item) {
+                    if (item['chart'] == null) return SizedBox(height: 0);
                     item["chart_name"] = item["chart"];
                     return getChartItem(item);
                   },

@@ -139,11 +139,10 @@ class ChartController extends GetxController {
       chartData = {};
     }
 
-    return _processChartData(chartMeta, chartData);
+    return processChartData(chartData);
   }
 
-  Map<String, List<AxisData>> _processChartData(
-    DashboardChart chartMeta,
+  Map<String, List<AxisData>> processChartData(
     Map<String, dynamic> chartDataset,
   ) {
     Map<String, List<AxisData>> chartData = {};
