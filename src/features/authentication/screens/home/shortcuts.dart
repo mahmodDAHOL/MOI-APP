@@ -126,7 +126,32 @@ Widget buildShortcutsPageFutureBuilder(String app) {
           );
 
         case 'Report':
-          return ReportScreen(reportName: item['link_to']);
+          return Card(
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: ListTile(
+              tileColor: Colors.white,
+              leading: Icon(Icons.report, color: Colors.grey[600]),
+              title: Text(
+                item['label'].toString(),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: primaryColor,
+                ),
+              ),
+              onTap: () {
+                Get.to(() {
+                  return ReportScreen(reportName: item['link_to']);
+                });
+              },
+            ),
+          );
+
         default:
           return Container();
       }
