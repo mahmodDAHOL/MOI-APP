@@ -36,7 +36,7 @@ class ListViewScreen extends StatelessWidget {
             InkWell(
               onTap: () {
                 formController.reset();
-                Get.to(
+                Get.off(
                   () => DynamicForm(
                     doctype: doctype,
                     fullForm: false,
@@ -181,7 +181,7 @@ class ListViewScreen extends StatelessWidget {
                   selectedItem['name'],
                 );
                 if (success) {
-                  Get.to(
+                  Get.off(
                     () => DynamicForm(
                       doctype: doctype,
                       fullForm: false,

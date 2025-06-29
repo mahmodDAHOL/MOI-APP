@@ -467,7 +467,6 @@ class FormController extends GetxController {
     Map<String, dynamic> jsonReq = {
       "docstatus": 0,
       "doctype": doctype,
-      "__islocal": 1,
       "__unsaved": 1,
       "owner": owner,
       "__run_link_triggers": 1,
@@ -487,7 +486,7 @@ class FormController extends GetxController {
       );
       String docJson = jsonEncode(fullDoc);
       String docDataEncoded = Uri.encodeComponent(docJson);
-      String updatedJsonString = 'doc=$docDataEncoded&action=Edit';
+      String updatedJsonString = 'doc=$docDataEncoded&action=Save';
       final headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
         ...session.headers,
