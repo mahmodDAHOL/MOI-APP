@@ -62,7 +62,7 @@ Widget getCardItem(Map item) {
   final CardController cardController = Get.put(CardController());
 
   return FutureBuilder<DashboardCard>(
-    future: cardController.getDashboardCardParams(item['card']),
+    future: cardController.getDashboardCardParams(item['card']?? item['number_card_name']),
     builder: (context, cardMetaSnapshot) {
       if (cardMetaSnapshot.connectionState == ConnectionState.waiting) {
         return Shimmer.fromColors(
@@ -105,11 +105,11 @@ Widget getCardItem(Map item) {
           ),
         );
       }
-      if (cardMetaSnapshot.hasError) {
-        return Center(
-          child: Text("Card Meta Error: ${cardMetaSnapshot.error}"),
-        );
-      }
+      // if (cardMetaSnapshot.hasError) {
+      //   return Center(
+      //     child: Text("Card Meta Error: ${cardMetaSnapshot.error}"),
+      //   );
+      // }
 
       DashboardCard cardMeta = cardMetaSnapshot.data!;
 

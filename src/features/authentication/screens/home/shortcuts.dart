@@ -76,28 +76,28 @@ Widget buildShortcutsPageFutureBuilder(String app) {
               },
             ),
           );
-        case 'Page':
-          return Card(
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: ListTile(
-              tileColor: Colors.white,
-              leading: Icon(Icons.pages, color: Colors.grey[600]),
-              title: Text(
-                item['label'].toString(),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: primaryColor,
-                ),
-              ),
-              onTap: () {},
-            ),
-          );
+        // case 'Page':
+        //   return Card(
+        //     elevation: 2,
+        //     shape: RoundedRectangleBorder(
+        //       borderRadius: BorderRadius.circular(12),
+        //     ),
+        //     margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        //     child: ListTile(
+        //       tileColor: Colors.white,
+        //       leading: Icon(Icons.pages, color: Colors.grey[600]),
+        //       title: Text(
+        //         item['label'].toString(),
+        //         textAlign: TextAlign.center,
+        //         style: TextStyle(
+        //           fontSize: 16,
+        //           fontWeight: FontWeight.w500,
+        //           color: primaryColor,
+        //         ),
+        //       ),
+        //       onTap: () {},
+        //     ),
+        //   );
         case 'Dashboard':
           return Card(
             elevation: 2,

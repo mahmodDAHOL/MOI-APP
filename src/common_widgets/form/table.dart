@@ -121,7 +121,7 @@ class TableWithAddButton extends StatelessWidget {
   }
 
   List<TableRow> getTableRows(String tableFieldName, BuildContext context) {
-    List<dynamic> tableFields = controller.tableRowValues[tableFieldName];
+    List<dynamic> tableFields = controller.tableRowValues[tableFieldName] ?? [];
     List<TableRow> TableRows =
         tableFields.asMap().entries.map((entry) {
           int rowIndex = entry.key;

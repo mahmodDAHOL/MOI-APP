@@ -6,17 +6,36 @@ import '../../controllers/chart_controller.dart';
 import '../../controllers/home_controller.dart';
 import '../../models/dashboard_chart_model.dart';
 import 'chart_builder.dart';
+import 'dashboard_card.dart';
 import 'dynamic_list.dart';
 
 Widget buildChartsPage(String app) {
   final HomeController homeController = Get.put(HomeController());
 
-  return DynamicListBuilder(
-    future: homeController.fetchDesktopPageElements(app),
-    sectionKey: 'charts',
-    itemBuilder: (context, index, item) {
-      return getChartItem(item);
-    },
+  return Center(
+    child: Column(
+      children: [
+        Expanded(
+          // height: 200,
+          child: DynamicListBuilder(
+            future: homeController.fetchDesktopPageElements(app),
+            sectionKey: 'number_cards',
+            itemBuilder: (context, index, item) {
+              return getCardItem(item);
+            },
+          ),
+        ),
+        Expanded(
+          child: DynamicListBuilder(
+            future: homeController.fetchDesktopPageElements(app),
+            sectionKey: 'charts',
+            itemBuilder: (context, index, item) {
+              return getChartItem(item);
+            },
+          ),
+        ),
+      ],
+    ),
   );
 }
 
@@ -154,11 +173,11 @@ Widget getChartItem(Map item) {
               ),
             );
           }
-          if (chartDataSnapshot.hasError) {
-            return Center(
-              child: Text("Chart Data Error: ${chartDataSnapshot.error}"),
-            );
-          }
+          // if (chartDataSnapshot.hasError) {
+          //   return Center(
+          //     child: Text("Chart Data Error: ${chartDataSnapshot.error}"),
+          //   );
+          // }
 
           Map<String, List<AxisData>> chartData = chartDataSnapshot.data!;
 

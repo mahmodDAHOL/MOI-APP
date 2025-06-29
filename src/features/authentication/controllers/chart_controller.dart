@@ -127,8 +127,8 @@ class ChartController extends GetxController {
     final resData = jsonDecode(res.body);
 
     Map<String, dynamic> chartData;
-    if (resData["message"] != null) {
-      if (chartMeta.chartType == "Report") {
+    if (resData["message"] != null && resData["message"].isNotEmpty) {
+      if (chartMeta.chartType == "Report" && resData["message"]['chart'].isNotEmpty) {
         chartData = resData["message"]['chart']['data'];
         chartMeta.color =
             resData["message"]["chart"]["colors"]?.first ?? chartMeta.color;
