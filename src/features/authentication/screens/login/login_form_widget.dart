@@ -36,21 +36,47 @@ class LoginForm extends StatelessWidget {
               ),
             ),
             const SizedBox(height: tFormHeight - 20),
-            TextFormField(
-              controller: loginController.passwordController,
-              decoration: InputDecoration(
-                prefixIcon: Icon(Icons.fingerprint),
-                labelText: "Password",
-                hintText: "Password",
-                border: OutlineInputBorder(),
-                suffixIcon: IconButton(
-                  onPressed: () {},
-                  icon: Icon(Icons.remove_red_eye_sharp),
-                ),
-              ),
-            ),
+            PasswordField(),
             const SizedBox(height: tFormHeight - 20),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class PasswordField extends StatefulWidget {
+  const PasswordField({super.key});
+
+  @override
+  State<PasswordField> createState() => _PasswordFieldState();
+}
+
+class _PasswordFieldState extends State<PasswordField> {
+  bool _obscurePassword = true;
+  LoginController loginController = Get.put(LoginController());
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: loginController.passwordController,
+      obscureText: _obscurePassword,
+      keyboardType: TextInputType.visiblePassword,
+      textInputAction: TextInputAction.done,
+      decoration: InputDecoration(
+        prefixIcon: Icon(Icons.lock_outline),
+        labelText: "Password",
+        hintText: "Enter your password",
+        border: OutlineInputBorder(),
+        suffixIcon: IconButton(
+          icon: Icon(_obscurePassword
+              ? Icons.visibility_off
+              : Icons.visibility),
+          onPressed: () {
+            setState(() {
+              _obscurePassword = !_obscurePassword;
+            });
+          },
         ),
       ),
     );

@@ -15,6 +15,7 @@ class LoginController extends GetxController {
   // final session = Get.find<Session>();
   final session = Get.put(Session());
   final sharedPreferencesController = Get.put(SharedPreferencesController());
+  final isLoading = false.obs;
 
   Future<bool> urlExists(String url) async =>
       (await (HttpClient()
@@ -23,6 +24,7 @@ class LoginController extends GetxController {
       HttpStatus.ok;
 
   void loginUser(BuildContext context) async {
+    isLoading.value = true;
     final prefs = await sharedPreferencesController.prefs;
     String domain = 'http://moi-mis.gov.sy';
     // String domain = domainController.text;
@@ -63,18 +65,18 @@ class LoginController extends GetxController {
             await prefs.setString('expirationDate', expirationDateStr);
             await prefs.setString('loggedin', 'true');
             await prefs.setString('domain', domain);
-            Get.off(() => HomePage(app:'Home'));
+            isLoading.value = false;
+            Get.off(() => HomePage(app: 'Home'));
           } else {
-            print(
-              "Failed to fetch dashboard page. Status code: ${dashboardResponse.statusCode}",
-            );
+            String message = "Failed to fetch dashboard page. Status code: ${dashboardResponse.statusCode}";
+            showAutoDismissDialog(context, message);
           }
         } else {
           String message = jsonDecode(loginResponse.body)['message'];
           showAutoDismissDialog(context, message);
-          print("${jsonDecode(loginResponse.body)['message']}");
         }
       } catch (e) {
+        isLoading.value = false;
         showAutoDismissDialog(context, e.toString());
       }
     } else {

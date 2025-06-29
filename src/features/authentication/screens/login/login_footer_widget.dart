@@ -22,15 +22,29 @@ class LoginFooterWidget extends StatelessWidget {
               child: Text("Forget Password?"),
             ),
           ),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                loginController.loginUser(context);
-              },
-              child: Text("LOGIN"),
-            ),
-          ),
+          Obx(() {
+            bool isLoading = loginController.isLoading.value;
+
+            return SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed:
+                    isLoading ? null : () => loginController.loginUser(context),
+                child:
+                    isLoading
+                        ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                        : const Text("LOGIN"),
+              ),
+            );
+          }),
         ],
       ),
     );
