@@ -15,8 +15,8 @@ Widget buildChartsPage(String app) {
   return Center(
     child: Column(
       children: [
-        Expanded(
-          // height: 200,
+        ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: 200), // Adjust as needed
           child: DynamicListBuilder(
             future: homeController.fetchDesktopPageElements(app),
             sectionKey: 'number_cards',

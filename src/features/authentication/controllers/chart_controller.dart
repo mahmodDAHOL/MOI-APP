@@ -16,7 +16,7 @@ class ChartController extends GetxController {
   Future<DashboardChart> getDashboardChartParams(String chartName) async {
     final prefs = await sharedPreferencesController.prefs;
     final String? domain = prefs.getString("domain");
-    final reportViewUrl = Uri.parse(
+    final url = Uri.parse(
       "$domain/api/method/frappe.desk.form.load.getdoc",
     );
 
@@ -26,7 +26,7 @@ class ChartController extends GetxController {
       '_': DateTime.now().millisecondsSinceEpoch.toString(),
     };
 
-    final response = await session.post(reportViewUrl, body: reqBody);
+    final response = await session.post(url, body: reqBody);
     final data = jsonDecode(response.body);
 
     DashboardChart chartParams =
@@ -169,7 +169,7 @@ class ChartController extends GetxController {
   ) async {
     final prefs = await sharedPreferencesController.prefs;
     final String? domain = prefs.getString("domain");
-    final reportViewUrl = Uri.parse(
+    final url = Uri.parse(
       "$domain/api/method/frappe.desk.doctype.dashboard_chart.dashboard_chart.get",
     );
     String docJson = jsonEncode(chartParams);
@@ -177,7 +177,7 @@ class ChartController extends GetxController {
     final headers = {...session.headers};
 
     http.Response response = await http.post(
-      reportViewUrl,
+      url,
       headers: headers,
       body: reqBody,
     );
@@ -194,7 +194,7 @@ class ChartController extends GetxController {
   Future<ChartDataset> getQueryReport(String reportName) async {
     final prefs = await sharedPreferencesController.prefs;
     final String? domain = prefs.getString("domain");
-    final reportViewUrl = Uri.parse(
+    final url = Uri.parse(
       "$domain/api/method/frappe.desk.query_report.run",
     );
     // Map<String, dynamic> chartParams = await getChartParams(reportName);
@@ -206,7 +206,7 @@ class ChartController extends GetxController {
       'ignore_prepared_report': '1',
     };
 
-    final response = await session.post(reportViewUrl, body: reqBody);
+    final response = await session.post(url, body: reqBody);
     final chartData = jsonDecode(response.body)['message'];
 
     return ChartDataset(chartParams: chartParams, chartData: chartData);
@@ -215,12 +215,12 @@ class ChartController extends GetxController {
   Future<String?> getDashboardChartSource(String chartName) async {
     final prefs = await sharedPreferencesController.prefs;
     final String? domain = prefs.getString("domain");
-    final reportViewUrl = Uri.parse(
+    final url = Uri.parse(
       "$domain/api/method/frappe.desk.doctype.dashboard_chart_source.dashboard_chart_source.get_config",
     );
     final reqBody = {'name': chartName};
 
-    final response = await session.post(reportViewUrl, body: reqBody);
+    final response = await session.post(url, body: reqBody);
     final chartData = jsonDecode(response.body)['message'];
 
     String? source = getSource(chartData, chartName);

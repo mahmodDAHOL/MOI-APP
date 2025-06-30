@@ -32,7 +32,7 @@ class _DynamicFormState extends State<DynamicForm> {
   Widget build(BuildContext context) {
     return Obx(
       () => Scaffold(
-        appBar: AppBar(title: Text("Dynamic Form")),
+        appBar: AppBar(title: Text(widget.doctype)),
         body: RefreshIndicator(
           onRefresh: () async {
             // Trigger a fresh load with skipCache = true
@@ -110,19 +110,21 @@ class _DynamicFormState extends State<DynamicForm> {
   ) {
     switch (field.type) {
       case FieldType.text:
-        return Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: TextField(
-            decoration: InputDecoration(labelText: field.label),
-            controller: TextEditingController(
-              text:
-                  field.defaultValue?.toString() ??
-                  controller.formValues[field.fieldName]?.toString() ??
-                  "",
+        return Obx(
+          () => Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: TextField(
+              decoration: InputDecoration(labelText: field.label),
+              controller: TextEditingController(
+                text:
+                    field.defaultValue?.toString() ??
+                    controller.formValues[field.fieldName]?.toString() ??
+                    "",
+              ),
+              onChanged: (value) {
+                controller.formValues[field.fieldName] = value.toString();
+              },
             ),
-            onChanged: (value) {
-              controller.formValues[field.fieldName] = value.toString();
-            },
           ),
         );
 
@@ -293,8 +295,7 @@ class _DynamicFormState extends State<DynamicForm> {
 
   Widget getMainFormWidget(Map<String, dynamic> tabs) {
     return ListView.builder(
-      shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
+      shrinkWrap: false,
       itemCount: tabs.values.single.length + 1,
       itemBuilder: (context, fieldIndex) {
         if (fieldIndex < tabs.values.single.length) {

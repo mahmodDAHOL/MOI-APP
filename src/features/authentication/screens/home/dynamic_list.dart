@@ -21,8 +21,15 @@ class DynamicListBuilder extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
-        } else if (!snapshot.hasData || snapshot.data?['message'] == null) {
-          return const Center(child: Text('No Data Available.'));
+        } else if (!snapshot.hasData ||
+            snapshot.data?['message'] == null ||
+            snapshot.data?['message'][sectionKey]['items'].isEmpty) {
+          return Center(
+            child: Text(
+              'No ${sectionKey!.replaceAll("_", " ")}  Available.',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          );
         }
         List items;
         if (sectionKey != null) {

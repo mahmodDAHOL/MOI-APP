@@ -35,7 +35,7 @@ class FormController extends GetxController {
     final prefs = await sharedPreferencesController.prefs;
     final String? domain = prefs.getString("domain");
 
-    final reportViewUrl = Uri.parse(
+    final url = Uri.parse(
       "$domain/api/method/frappe.desk.form.load.getdoctype",
     );
     String cachedTimestamp = DateTime.now().toUtc().toString().replaceFirst(
@@ -49,7 +49,7 @@ class FormController extends GetxController {
       '_': DateTime.now().millisecondsSinceEpoch.toString(),
     };
 
-    final response = await session.post(reportViewUrl, body: reqBody);
+    final response = await session.post(url, body: reqBody);
     Map<String, dynamic> data = jsonDecode(response.body);
     return data;
   }
@@ -424,7 +424,7 @@ class FormController extends GetxController {
     final prefs = await sharedPreferencesController.prefs;
     final String? domain = prefs.getString("domain");
 
-    final reportViewUrl = Uri.parse(
+    final url = Uri.parse(
       "$domain/api/method/frappe.desk.search.search_link",
     );
     // if (doctype.contains("From ")){
@@ -438,7 +438,7 @@ class FormController extends GetxController {
       'page_length': '10',
     };
 
-    final response = await session.post(reportViewUrl, body: reqBody);
+    final response = await session.post(url, body: reqBody);
     Map<String, dynamic> data = jsonDecode(response.body);
 
     if (data["message"] != null &&
@@ -478,10 +478,10 @@ class FormController extends GetxController {
       ...formValues,
     };
 
-    Uri reportViewUrl;
+    Uri url;
     http.Response response;
     if (forEditing) {
-      reportViewUrl = Uri.parse(
+      url = Uri.parse(
         "$domain/api/method/frappe.desk.form.save.savedocs",
       );
       String docJson = jsonEncode(fullDoc);
@@ -493,26 +493,26 @@ class FormController extends GetxController {
       };
 
       response = await http.post(
-        reportViewUrl,
+        url,
         headers: headers,
         body: updatedJsonString,
       );
       if (response.statusCode == 200) {
         isSubmitting.value = false;
-        Get.off(() => ListViewScreen(doctype: doctype));
+        Get.back();
       } else {
         // String errorMessage = jsonDecode(response.body)['exception'];
         isSubmitting.value = false;
         showAutoDismissDialog(context, "Error: ${response.body}");
       }
     } else {
-      reportViewUrl = Uri.parse("$domain/api/method/frappe.client.save");
+      url = Uri.parse("$domain/api/method/frappe.client.save");
       String docJson = jsonEncode(fullDoc);
       Map<String, String> reqBody = {'doc': docJson};
-      response = await session.post(reportViewUrl, body: reqBody);
+      response = await session.post(url, body: reqBody);
       if (response.statusCode == 200) {
         isSubmitting.value = false;
-        Get.off(() => ListViewScreen(doctype: doctype));
+        Get.back();
       } else {
         String errorMessage = jsonDecode(response.body)['exception'];
         isSubmitting.value = false;

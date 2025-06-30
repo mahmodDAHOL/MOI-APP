@@ -59,12 +59,12 @@ class ListViewController extends GetxController {
         }).toList();
     final prefs = await sharedPreferencesController.prefs;
     final String? domain = prefs.getString("domain");
-    final reportViewUrl = Uri.parse(
+    final url = Uri.parse(
       "$domain/api/method/frappe.desk.reportview.delete_items",
     );
     String items = jsonEncode(entriesToDelete);
     Map<String, String> reqBody = {'items': items, 'doctype': doctype};
-    final response = await session.post(reportViewUrl, body: reqBody);
+    final response = await session.post(url, body: reqBody);
     if (response.statusCode != 200) {
       String message = jsonDecode(response.body)['exception'];
       showAutoDismissDialog(context, message);
@@ -79,7 +79,7 @@ class ListViewController extends GetxController {
     final prefs = await sharedPreferencesController.prefs;
     final String? domain = prefs.getString("domain");
 
-    final reportViewUrl = Uri.parse(
+    final url = Uri.parse(
       "$domain/api/method/frappe.desk.reportview.get",
     );
 
@@ -114,7 +114,7 @@ class ListViewController extends GetxController {
         'with_comment_count': '1',
       };
 
-      final response = await session.post(reportViewUrl, body: reqBody);
+      final response = await session.post(url, body: reqBody);
       Map<String, dynamic> data = jsonDecode(response.body);
       if (data["message"] != null && data["message"].isNotEmpty) {
         List<String> keys = List<String>.from(data["message"]["keys"]);
@@ -146,12 +146,12 @@ class ListViewController extends GetxController {
   Future<List<Map<String, dynamic>>?> getListviewFields(String doctype) async {
     final prefs = await sharedPreferencesController.prefs;
     final String? domain = prefs.getString("domain");
-    final reportViewUrl = Uri.parse(
+    final url = Uri.parse(
       "$domain/api/method/frappe.desk.listview.get_list_settings",
     );
 
     Map<String, String> reqBody = {'doctype': doctype};
-    final response = await session.post(reportViewUrl, body: reqBody);
+    final response = await session.post(url, body: reqBody);
     Map<String, dynamic> data = jsonDecode(response.body);
 
     if (data.containsKey("message") &&
@@ -184,7 +184,7 @@ class ListViewController extends GetxController {
   Future<bool> getItemInfo(String doctype, String itemName) async {
     final prefs = await sharedPreferencesController.prefs;
     final String? domain = prefs.getString("domain");
-    final reportViewUrl = Uri.parse(
+    final url = Uri.parse(
       "$domain/api/method/frappe.desk.form.load.getdoc",
     );
 
@@ -193,7 +193,7 @@ class ListViewController extends GetxController {
       'name': itemName,
       '_': DateTime.now().millisecondsSinceEpoch.toString(),
     };
-    final response = await session.post(reportViewUrl, body: reqBody);
+    final response = await session.post(url, body: reqBody);
     Map<String, dynamic> data = jsonDecode(response.body);
     if (data['docs'] != null) {
       Map<String, dynamic> doctypeData = data['docs'][0];

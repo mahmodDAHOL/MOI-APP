@@ -105,11 +105,11 @@ Widget getCardItem(Map item) {
           ),
         );
       }
-      // if (cardMetaSnapshot.hasError) {
-      //   return Center(
-      //     child: Text("Card Meta Error: ${cardMetaSnapshot.error}"),
-      //   );
-      // }
+      if (cardMetaSnapshot.hasError) {
+        return Center(
+          child: Text("Card Meta Error: ${cardMetaSnapshot.error}"),
+        );
+      }
 
       DashboardCard cardMeta = cardMetaSnapshot.data!;
 
