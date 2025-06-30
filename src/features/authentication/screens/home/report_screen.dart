@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:moi_app/src/constants/colors.dart';
@@ -67,7 +69,12 @@ class ReportScreen extends StatelessWidget {
             if (reportController.isLoading.value) {
               return Center(child: CircularProgressIndicator());
             }
-            Map filters = reportController.filters;
+            final filtersJson = jsonEncode(
+              reportController.filters,
+            ); // triggers Obx on any change
+            final filters = jsonDecode(
+              filtersJson,
+            ); // optional: cast back to Map<String, dynamic>
             return buildTableSection(filters);
           }),
         ],
@@ -218,6 +225,7 @@ class ReportScreen extends StatelessWidget {
     String type = field['fieldtype'];
     switch (type) {
       case "Text":
+      case "Data":
         return Padding(
           padding: const EdgeInsets.all(16.0),
           child: TextField(
