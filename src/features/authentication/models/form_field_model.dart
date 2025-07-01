@@ -7,7 +7,7 @@ class FormFieldData {
   final String fieldName;
   final FieldType type;
   final String? label;
-  final dynamic options;
+  dynamic options;
   final dynamic defaultValue;
   final dynamic data;
   final dynamic tableIndex;

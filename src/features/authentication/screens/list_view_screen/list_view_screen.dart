@@ -13,9 +13,6 @@ class ListViewScreen extends StatelessWidget {
   final FormController formController = Get.find();
   final String doctype;
 
-  // Controller for the filter TextField
-  final TextEditingController filterController = TextEditingController();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,13 +23,13 @@ class ListViewScreen extends StatelessWidget {
                   .spaceBetween, // Ensures the Row doesn't take full width
           children: [
             Container(
-                width: 200,
-                child: Text(
-                  doctype,
-                  softWrap: true,
-                  overflow: TextOverflow.ellipsis,
-                ),
+              width: 200,
+              child: Text(
+                doctype,
+                softWrap: true,
+                overflow: TextOverflow.ellipsis,
               ),
+            ),
             InkWell(
               onTap: () {
                 formController.reset();
@@ -54,41 +51,45 @@ class ListViewScreen extends StatelessWidget {
         ),
       ),
       body: Obx(() {
+        int filtersNum = listViewController.filters.length;
         return Column(
           children: [
             // Add a filter TextField at the top
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: TextField(
-                controller: filterController,
-                decoration: InputDecoration(
-                  labelText: "Filter",
-                  border: OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    icon: Icon(Icons.clear),
-                    onPressed: () {
-                      // Clear the filter text
-                      filterController.clear();
-                      listViewController.filter.value = "";
-                    },
-                  ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: Icon(Icons.filter_list),
+                  onPressed:
+                      () => listViewController.addFilter(context, doctype),
                 ),
-                onChanged: (value) {
-                  // Update the filter value in the controller
-                  listViewController.filter.value = value;
-                },
-              ),
+                if (filtersNum > 0)
+                  ElevatedButton(
+                    onPressed: () => listViewController.showFilters(context),
+                    child: Padding(
+                      padding: EdgeInsetsGeometry.symmetric(horizontal: 8),
+                      child: Text("Filters ($filtersNum)"),
+                    ),
+                  ),
+                if (filtersNum > 0)
+                  ElevatedButton(
+                    onPressed: listViewController.clearFilters,
+                    child: Padding(
+                      padding: EdgeInsetsGeometry.symmetric(horizontal: 8),
+                      child: Text("Clear Filters"),
+                    ),
+                  ),
+              ],
             ),
+
+            Divider(),
 
             // Main content: SingleChildScrollView with FutureBuilder
             SizedBox(height: 20),
             Expanded(
               child: SingleChildScrollView(
                 child: FutureBuilder<List<Map<String, dynamic>>?>(
-                  future: listViewController.getReportView(
-                    doctype,
-                    listViewController.filter.value,
-                  ),
+                  future: listViewController.getReportView(doctype, context),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return Center(child: CircularProgressIndicator());
@@ -137,7 +138,7 @@ class ListViewScreen extends StatelessWidget {
                   }
                 },
                 children:
-                    listViewController.options.map((String option) {
+                    listViewController.elmCountoptions.map((String option) {
                       return Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
@@ -187,7 +188,6 @@ class ListViewScreen extends StatelessWidget {
                       fullForm: false,
                       forEditing: true,
                     ),
-                    //   arguments: {'source': 'listview', 'oldID':selectedItem['id']},
                   );
                 } else {
                   showAutoDismissDialog(context, "You can't edit this record");
