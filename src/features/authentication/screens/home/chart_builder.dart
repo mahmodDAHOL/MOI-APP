@@ -48,7 +48,6 @@ class ChartBuilderScreen extends StatelessWidget {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
             ),
           ),
           SizedBox(height: 10),

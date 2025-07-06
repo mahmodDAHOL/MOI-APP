@@ -16,9 +16,7 @@ class ChartController extends GetxController {
   Future<DashboardChart> getDashboardChartParams(String chartName) async {
     final prefs = await sharedPreferencesController.prefs;
     final String? domain = prefs.getString("domain");
-    final url = Uri.parse(
-      "$domain/api/method/frappe.desk.form.load.getdoc",
-    );
+    final url = Uri.parse("$domain/api/method/frappe.desk.form.load.getdoc");
 
     final reqBody = {
       'doctype': 'Dashboard Chart',
@@ -127,14 +125,21 @@ class ChartController extends GetxController {
     final resData = jsonDecode(res.body);
 
     Map<String, dynamic> chartData;
-    if (resData["message"] != null && resData["message"].isNotEmpty) {
-      if (chartMeta.chartType == "Report" && resData["message"]['chart'].isNotEmpty) {
+    if (resData["message"] != null &&
+        resData["message"].isNotEmpty &&
+        resData["message"]['chart'] != null &&
+        resData["message"]['chart'].isNotEmpty) {
+      if (chartMeta.chartType == "Report" &&
+          resData["message"]['chart'].isNotEmpty) {
         chartData = resData["message"]['chart']['data'];
         chartMeta.color =
             resData["message"]["chart"]["colors"]?.first ?? chartMeta.color;
       } else {
         chartData = resData["message"];
       }
+    } else if (resData["message"] != null &&
+        resData["message"].containsKey('datasets')) {
+      chartData = resData["message"];
     } else {
       chartData = {};
     }
@@ -194,9 +199,7 @@ class ChartController extends GetxController {
   Future<ChartDataset> getQueryReport(String reportName) async {
     final prefs = await sharedPreferencesController.prefs;
     final String? domain = prefs.getString("domain");
-    final url = Uri.parse(
-      "$domain/api/method/frappe.desk.query_report.run",
-    );
+    final url = Uri.parse("$domain/api/method/frappe.desk.query_report.run");
     // Map<String, dynamic> chartParams = await getChartParams(reportName);
     Map<String, dynamic> chartParams = {};
 
@@ -226,7 +229,6 @@ class ChartController extends GetxController {
     String? source = getSource(chartData, chartName);
     return source;
   }
-
 }
 
 class ChartDataset {

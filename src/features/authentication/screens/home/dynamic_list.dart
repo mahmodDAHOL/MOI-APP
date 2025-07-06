@@ -17,20 +17,22 @@ class DynamicListBuilder extends StatelessWidget {
     return FutureBuilder<Map<String, dynamic>?>(
       future: future,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        } else if (!snapshot.hasData ||
-            snapshot.data?['message'] == null ||
-            snapshot.data?['message'][sectionKey]['items'].isEmpty) {
-          return Center(
-            child: Text(
-              'No ${sectionKey!.replaceAll("_", " ")}  Available.',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          );
-        }
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          // } else if (snapshot.hasError) {
+          //   return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData ||
+              snapshot.data?['message'] == null 
+              // ||
+              // snapshot.data?['message'][sectionKey]['items']
+              ) {
+            return Center(
+              child: Text(
+                'No ${sectionKey!.replaceAll("_", " ")}  Available.',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            );
+          }
         List items;
         if (sectionKey != null) {
           items = snapshot.data!['message'][sectionKey]['items'];

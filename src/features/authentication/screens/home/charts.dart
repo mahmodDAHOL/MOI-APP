@@ -25,6 +25,7 @@ Widget buildChartsPage(String app) {
             },
           ),
         ),
+        Divider(),
         Expanded(
           child: DynamicListBuilder(
             future: homeController.fetchDesktopPageElements(app),

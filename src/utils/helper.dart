@@ -634,3 +634,8 @@ String? getSource(String input, String chartName) {
     return null;
   }
 }
+
+String removeHtmlTags(String htmlString) {
+  final RegExp exp = RegExp(r"<[^>]*>", multiLine: true, caseSensitive: true);
+  return htmlString.replaceAll(exp, '').replaceAll(RegExp(r'\s+'), ' ').trim();
+}

@@ -122,13 +122,13 @@ class TableWithAddButton extends StatelessWidget {
 
   List<TableRow> getTableRows(String tableFieldName, BuildContext context) {
     List<dynamic> tableFields = controller.tableRowValues[tableFieldName] ?? [];
-    List<TableRow> TableRows =
+    List<TableRow> tableRows =
         tableFields.asMap().entries.map((entry) {
           int rowIndex = entry.key;
           Map<dynamic, dynamic> row = entry.value;
           return GetTableRow(tableFieldName, row, rowIndex, context);
         }).toList();
-    return TableRows;
+    return tableRows;
   }
 
   TableRow getTableHeader(BuildContext context, List tableFields) {
@@ -309,6 +309,34 @@ class TableWithAddButton extends StatelessWidget {
             },
           );
         });
+      case FieldType.date:
+        return ListTile(
+          title: Text(field.data['label'] ?? field.data['fieldName']),
+          subtitle: Text(getLinkValue(tableFieldName, rowIndex, colIndex)),
+          trailing: Icon(Icons.calendar_today),
+          onTap: () async {
+            final picked = await showDatePicker(
+              context: context,
+              firstDate: DateTime(1900),
+              lastDate: DateTime(2100),
+            );
+            if (picked != null) {
+              Map<String, dynamic> mutableRow = editTableRow(
+                tableFieldName,
+                controller.tableRowValues,
+                rowIndex,
+                colIndex,
+                picked.toString(),
+              );
+              tableData.addAll(mutableRow);
+
+              controller.tablesData[tableFieldName]!.add(tableData);
+
+              controller.tableRowValues.refresh();
+              controller.tablesData.refresh();
+            }
+          },
+        );
       default:
         return null;
       // return Text(field.fieldName, style: TextStyle(color: Colors.red));
