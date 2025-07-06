@@ -318,7 +318,9 @@ Map<String, dynamic> editTableRow(
 
 bool toBool(String? value) {
   if (value == null) return false;
-  return value == '1';
+
+  final lower = value.trim().toLowerCase();
+  return ['true', '1', 'yes', 'on'].contains(lower);
 }
 
 int toIntBool(bool? value) {
@@ -596,7 +598,6 @@ String formatLargeNumber(double number) {
   }
 }
 
-
 num getProperYAxisInterval(num maxValue) {
   if (maxValue >= 5000) return 1000;
   if (maxValue >= 2000) return 500;
@@ -633,4 +634,9 @@ String? getSource(String input, String chartName) {
     print("Method not found.");
     return null;
   }
+}
+
+String removeHtmlTags(String htmlString) {
+  final RegExp exp = RegExp(r"<[^>]*>", multiLine: true, caseSensitive: true);
+  return htmlString.replaceAll(exp, '').replaceAll(RegExp(r'\s+'), ' ').trim();
 }

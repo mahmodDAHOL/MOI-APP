@@ -122,13 +122,13 @@ class TableWithAddButton extends StatelessWidget {
 
   List<TableRow> getTableRows(String tableFieldName, BuildContext context) {
     List<dynamic> tableFields = controller.tableRowValues[tableFieldName] ?? [];
-    List<TableRow> TableRows =
+    List<TableRow> tableRows =
         tableFields.asMap().entries.map((entry) {
           int rowIndex = entry.key;
           Map<dynamic, dynamic> row = entry.value;
           return GetTableRow(tableFieldName, row, rowIndex, context);
         }).toList();
-    return TableRows;
+    return tableRows;
   }
 
   TableRow getTableHeader(BuildContext context, List tableFields) {
@@ -230,6 +230,34 @@ class TableWithAddButton extends StatelessWidget {
             },
           );
         });
+      case FieldType.check:
+        return Obx(() {
+          String? checkboxValue =
+              getCheckBoxValue(tableFieldName, rowIndex, colIndex).toString();
+          final bool isChecked = toBool(checkboxValue) == true;
+
+          return ListTile(
+            trailing: Checkbox(
+              value: isChecked,
+              onChanged: (value) {
+                Map<String, dynamic> mutableRow = editTableRow(
+                  tableFieldName,
+                  controller.tableRowValues,
+                  rowIndex,
+                  colIndex,
+                  value.toString(),
+                );
+                tableData.addAll(mutableRow);
+
+                controller.tablesData[tableFieldName]!.add(tableData);
+
+                controller.tableRowValues.refresh();
+                controller.tablesData.refresh();
+              },
+            ),
+          );
+        });
+
       case FieldType.link:
         return Obx(() {
           return ListTile(
@@ -309,6 +337,84 @@ class TableWithAddButton extends StatelessWidget {
             },
           );
         });
+      case FieldType.date:
+        return ListTile(
+          title: Text(field.data['label'] ?? field.data['fieldName']),
+          subtitle: Text(getLinkValue(tableFieldName, rowIndex, colIndex)),
+          trailing: Icon(Icons.calendar_today),
+          onTap: () async {
+            final picked = await showDatePicker(
+              context: context,
+              firstDate: DateTime(1900),
+              lastDate: DateTime(2100),
+            );
+            if (picked != null) {
+              Map<String, dynamic> mutableRow = editTableRow(
+                tableFieldName,
+                controller.tableRowValues,
+                rowIndex,
+                colIndex,
+                picked.toString(),
+              );
+              tableData.addAll(mutableRow);
+
+              controller.tablesData[tableFieldName]!.add(tableData);
+
+              controller.tableRowValues.refresh();
+              controller.tablesData.refresh();
+            }
+          },
+        );
+      case FieldType.datetime:
+        return ListTile(
+          title: Text(field.data['label'] ?? field.data['fieldName']),
+          subtitle: Text(getLinkValue(tableFieldName, rowIndex, colIndex)),
+          trailing: Icon(Icons.access_time),
+          onTap: () async {
+            final datePicked = await showDatePicker(
+              context: context,
+              initialDate: DateTime.now(),
+              firstDate: DateTime(1900),
+              lastDate: DateTime(2100),
+            );
+
+            if (datePicked == null) return;
+
+            final timePicked = await showTimePicker(
+              context: context,
+              initialTime: TimeOfDay.now(),
+            );
+
+            if (timePicked == null) return;
+
+            // Combine date and time
+            final selectedDateTime = DateTime(
+              datePicked.year,
+              datePicked.month,
+              datePicked.day,
+              timePicked.hour,
+              timePicked.minute,
+            );
+
+            // Save as ISO string or format it as needed
+            String datetimeString = selectedDateTime.toIso8601String();
+
+            Map<String, dynamic> mutableRow = editTableRow(
+              tableFieldName,
+              controller.tableRowValues,
+              rowIndex,
+              colIndex,
+              datetimeString,
+            );
+
+            tableData.addAll(mutableRow);
+
+            controller.tablesData[tableFieldName]!.add(tableData);
+
+            controller.tableRowValues.refresh();
+            controller.tablesData.refresh();
+          },
+        );
       default:
         return null;
       // return Text(field.fieldName, style: TextStyle(color: Colors.red));
@@ -329,6 +435,21 @@ class TableWithAddButton extends StatelessWidget {
 
     String displayText = cellValue?.toString() ?? "Select Option";
     return displayText;
+  }
+
+  String? getCheckBoxValue(String tableFieldName, int rowIndex, int colIndex) {
+    var tableData = controller.tableRowValues[tableFieldName];
+    var rowData =
+        tableData is List && rowIndex >= 0 && rowIndex < tableData.length
+            ? tableData[rowIndex]
+            : null;
+    rowData = rowData.values.toList();
+    var cellValue =
+        rowData is List && colIndex >= 0 && colIndex < rowData.length
+            ? rowData[colIndex]
+            : null;
+
+    return cellValue.toString();
   }
 
   void changeValue(

@@ -33,7 +33,7 @@ class ListViewScreen extends StatelessWidget {
             InkWell(
               onTap: () {
                 formController.reset();
-                Get.to(
+                Get.off(
                   () => DynamicForm(
                     doctype: doctype,
                     fullForm: false,
@@ -175,6 +175,7 @@ class ListViewScreen extends StatelessWidget {
               if (listViewController.selectedRowIndices.length > 1) {
                 showAutoDismissDialog(context, "Select only one item");
               } else {
+                formController.reset();
                 final selectedItem =
                     reportData[listViewController.selectedRowIndices.first];
                 bool success = await listViewController.getItemInfo(

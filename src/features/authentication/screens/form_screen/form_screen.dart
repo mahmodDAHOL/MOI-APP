@@ -110,22 +110,23 @@ class _DynamicFormState extends State<DynamicForm> {
   ) {
     switch (field.type) {
       case FieldType.text:
-        return Obx(
-          () => Padding(
+        // return Obx(
+          // () => 
+          return Padding(
             padding: const EdgeInsets.all(16.0),
             child: TextField(
               decoration: InputDecoration(labelText: field.label),
               controller: TextEditingController(
                 text:
-                    field.defaultValue?.toString() ??
                     controller.formValues[field.fieldName]?.toString() ??
+                    field.defaultValue?.toString() ??
                     "",
               ),
               onChanged: (value) {
                 controller.formValues[field.fieldName] = value.toString();
               },
             ),
-          ),
+          // ),
         );
 
       case FieldType.select:

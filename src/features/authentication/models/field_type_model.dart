@@ -1,4 +1,4 @@
-enum FieldType { text, date, select, check, link, tabBreak, table, image, unknown }
+enum FieldType { text, date, datetime, select, check, link, tabBreak, table, image, unknown }
 
 // Convert enum to String
 String fieldTypeToString(FieldType type) {
@@ -11,6 +11,8 @@ FieldType stringToFieldType(String? typeName) {
     switch (typeName?.capitalize()) {
       case 'Date':
         return FieldType.date;
+      case 'Datetime':
+        return FieldType.datetime;
       case 'Select':
         return FieldType.select;
       case 'Link':

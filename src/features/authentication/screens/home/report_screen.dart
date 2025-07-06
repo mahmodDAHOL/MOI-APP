@@ -95,6 +95,37 @@ class ReportScreen extends StatelessWidget {
             return const Center(child: Text('No Data Available.'));
           }
           Map<String, dynamic> items = snapshot.data!;
+          if (!items.containsKey('result')) {
+            return SizedBox(
+              height: 250,
+              width: double.infinity,
+              child: Card(
+                elevation: 1,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                margin: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Center(
+                    child: Text(
+                      'No Data Available',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: tPrimaryColor,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }
+
           List tableData = items['result'];
           int rowNum = tableData.length;
           List<String> columnsName =

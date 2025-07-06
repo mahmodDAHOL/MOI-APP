@@ -246,7 +246,12 @@ class FormController extends GetxController {
       } else {
         // fullForm is false
         if (fieldName == null) continue;
-        final fieldMeta = fieldMap[fieldName] ?? {};
+        var fieldMeta = fieldMap[fieldName] ?? {};
+        final String fieldTypeStr = fieldMeta['fieldtype'] ?? 'Unknown';
+        if (fieldTypeStr == "Table") {
+          fieldMeta = await getTableFieldsFromUserSettings(doctype, fieldMeta);
+        }
+
         FormFieldData? field = await getFormFieldsData(
           fieldName,
           fieldMeta,
@@ -424,9 +429,7 @@ class FormController extends GetxController {
     final prefs = await sharedPreferencesController.prefs;
     final String? domain = prefs.getString("domain");
 
-    final url = Uri.parse(
-      "$domain/api/method/frappe.desk.search.search_link",
-    );
+    final url = Uri.parse("$domain/api/method/frappe.desk.search.search_link");
     // if (doctype.contains("From ")){
     //   doctype = doctype.replaceFirst("From ", "");
     // }
@@ -481,9 +484,7 @@ class FormController extends GetxController {
     Uri url;
     http.Response response;
     if (forEditing) {
-      url = Uri.parse(
-        "$domain/api/method/frappe.desk.form.save.savedocs",
-      );
+      url = Uri.parse("$domain/api/method/frappe.desk.form.save.savedocs");
       String docJson = jsonEncode(fullDoc);
       String docDataEncoded = Uri.encodeComponent(docJson);
       String updatedJsonString = 'doc=$docDataEncoded&action=Save';
@@ -499,7 +500,7 @@ class FormController extends GetxController {
       );
       if (response.statusCode == 200) {
         isSubmitting.value = false;
-        Get.back();
+        Get.off(ListViewScreen(doctype: doctype));
       } else {
         // String errorMessage = jsonDecode(response.body)['exception'];
         isSubmitting.value = false;
@@ -512,7 +513,7 @@ class FormController extends GetxController {
       response = await session.post(url, body: reqBody);
       if (response.statusCode == 200) {
         isSubmitting.value = false;
-        Get.back();
+        Get.off(ListViewScreen(doctype: doctype));
       } else {
         String errorMessage = jsonDecode(response.body)['exception'];
         isSubmitting.value = false;

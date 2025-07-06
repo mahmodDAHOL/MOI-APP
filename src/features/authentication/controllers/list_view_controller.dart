@@ -2,13 +2,14 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:moi_app/src/features/authentication/controllers/form_controller.dart';
 
 import '../../../utils/helper.dart';
 import '../models/field_type_model.dart';
 import '../models/form_field_model.dart';
+import '../screens/list_view_screen/list_view_screen.dart';
 import 'shared_preferences_controller.dart';
-import 'package:intl/intl.dart';
 
 class ListViewController extends GetxController {
   final session = Get.find<Session>();
@@ -25,7 +26,7 @@ class ListViewController extends GetxController {
   List<String> valuesList = [];
   final Rx<FilterField?> selectedField = Rx<FilterField?>(null);
   final Rx<FilterField?> selectedOperator = Rx<FilterField?>(null);
-  final RxString selectedValue = "".obs;
+  final selectedValue = Rx<dynamic>("");
   final TextEditingController _valueController = TextEditingController();
 
   late StateSetter stateSetter;
@@ -67,6 +68,7 @@ class ListViewController extends GetxController {
                 itemBuilder: (context, index) {
                   final filter = filters[index];
                   return Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Expanded(
                         child: Text(
@@ -76,7 +78,7 @@ class ListViewController extends GetxController {
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
-                      SizedBox(width: 4),
+                      SizedBox(width: 8),
 
                       Expanded(
                         child: Text(
@@ -90,7 +92,7 @@ class ListViewController extends GetxController {
 
                       Expanded(
                         child: Text(
-                          filter.value,
+                          filter.value.toString(),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -129,7 +131,7 @@ class ListViewController extends GetxController {
             builder: (context, setState) {
               stateSetter = setState; // Save setState to use inside functions
 
-              return Obx(() => getFilterForm(context));
+              return Obx(() => getFilterForm(context, doctype));
             },
           ),
           actions: [
@@ -149,6 +151,7 @@ class ListViewController extends GetxController {
                   ),
                 );
                 Navigator.pop(context);
+                selectedValue.value = null;
               },
               child: Text("Add Filter"),
             ),
@@ -158,7 +161,13 @@ class ListViewController extends GetxController {
     );
   }
 
-  Widget getFilterForm(BuildContext context) {
+  Widget getFilterForm(BuildContext context, String doctype) {
+    formController.getFormLayout(
+      doctype,
+      true,
+      false,
+      skipCache: false,
+    ); // to load field in memory then use by filter field
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -225,145 +234,221 @@ class ListViewController extends GetxController {
   }
 
   Widget getFilterValueField(BuildContext context) {
-    if ([
-      FieldType.link,
-      FieldType.select,
-    ].contains(selectedField.value?.type)) {
-      return DropdownButtonFormField<String>(
-        decoration: InputDecoration(labelText: "Value"),
-        isExpanded: true, // Allows full width
+    final field = selectedField.value;
+    final operator = selectedOperator.value?.name ?? "";
+
+    if (field == null) return SizedBox.shrink();
+
+    // Handle Link or Select types
+    if ([FieldType.link, FieldType.select].contains(field.type)) {
+      return _buildDropdown(
+        context,
+        label: "Value",
         items:
-            selectedField.value?.options!.map<DropdownMenuItem<String>>((
-              option,
-            ) {
-              return DropdownMenuItem<String>(
-                value: option,
-                child: Text(
-                  option,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 14),
-                ),
-              );
-            }).toList(),
-        onChanged: (value) {
-          if (value != null) {
-            selectedValue.value = value;
-          }
-        },
-      );
-    } else if (selectedField.value?.type == FieldType.check) {
-      return DropdownButtonFormField<String>(
-        decoration: InputDecoration(labelText: "Value"),
-        isExpanded: true, // Allows full width
-        items: [
-          DropdownMenuItem<String>(
-            value: '1',
-            child: Text('true', style: TextStyle(fontSize: 14)),
-          ),
-          DropdownMenuItem<String>(
-            value: '0',
-            child: Text('false', style: TextStyle(fontSize: 14)),
-          ),
-        ],
-        onChanged: (value) {
-          if (value != null) {
-            selectedValue.value = value;
-          }
-        },
-      );
-    } else if (selectedField.value?.type == FieldType.date) {
-      final field = selectedField.value!;
-      final operator = selectedOperator.value?.name ?? "";
-
-      return ListTile(
-        title: Text(field.label),
-        subtitle: Obx(() {
-          if (selectedValue.value.isNotEmpty) {
-            if (operator == "Between") {
-              // Show date range
-              final dates = selectedValue.value.split(" - ");
-              if (dates.length == 2) {
-                return Text("${dates[0]} to ${dates[1]}");
-              }
-            } else {
-              // Show single date
-              DateTime? date = DateTime.tryParse(selectedValue.value);
-              if (date != null) {
-                return Text(DateFormat('yyyy-MM-dd').format(date));
-              }
-            }
-          }
-          return Text("Select Date");
-        }),
-        trailing: Icon(Icons.calendar_today),
-        onTap: () async {
-          if (operator == "Between") {
-            // Date Range Picker
-            final initialRange =
-                selectedValue.value.isNotEmpty
-                    ? selectedValue.value
-                        .split(" - ")
-                        .map((d) => DateTime.parse(d))
-                        .toList()
-                    : [DateTime.now(), DateTime.now().add(Duration(days: 7))];
-
-            final pickedRange = await showDateRangePicker(
-              context: context,
-              firstDate: DateTime(1900),
-              lastDate: DateTime(2100),
-              initialEntryMode: DatePickerEntryMode.calendarOnly,
-            );
-
-            if (pickedRange != null) {
-              String rangeString =
-                  "${DateFormat('yyyy-MM-dd').format(pickedRange.start)} - ${DateFormat('yyyy-MM-dd').format(pickedRange.end)}";
-              selectedValue.value = rangeString;
-            }
-          } else {
-            // Single Date Picker
-            DateTime? initialDate =
-                selectedValue.value.isNotEmpty
-                    ? DateTime.tryParse(selectedValue.value)
-                    : DateTime.now();
-
-            final pickedDate = await showDatePicker(
-              context: context,
-              initialDate: initialDate!,
-              firstDate: DateTime(1900),
-              lastDate: DateTime(2100),
-            );
-
-            if (pickedDate != null) {
-              selectedValue.value = pickedDate.toIso8601String();
-            }
-          }
-        },
-      );
-    } else {
-      return TextFormField(
-        controller: _valueController,
-        keyboardType: TextInputType.text,
-        maxLines: null, // allows multiple lines
-        minLines: 1,
-        maxLength: null,
-        decoration: InputDecoration(
-          labelText: "Value",
-          alignLabelWithHint: true,
-          isDense: true,
-          contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-        ),
-        validator: (value) {
-          if (value == null || value.trim().isEmpty) {
-            return "Please enter a value";
-          }
-          return null;
-        },
-        onChanged: (value) {
-          selectedValue.value = value;
-        },
+            field.options!
+                .map(
+                  (option) => DropdownMenuItem<String>(
+                    value: option,
+                    child: Text(
+                      option,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                )
+                .toList(),
+        onChanged: (value) => selectedValue.value = value ?? "",
       );
     }
+
+    // Handle Checkbox with true/false
+    if (field.type == FieldType.check) {
+      return _buildDropdown(
+        context,
+        label: "Value",
+        items:
+            ["true", "false"]
+                .map(
+                  (option) => DropdownMenuItem<String>(
+                    value: option,
+                    child: Text(option),
+                  ),
+                )
+                .toList(),
+        onChanged: (value) => selectedValue.value = value ?? "",
+      );
+    }
+
+    // Handle Date type
+    if (field.type == FieldType.date) {
+      return _buildDateField(context, operator);
+    }
+
+    // Handle 'is' operator with Set/Unset options
+    if (operator == "is") {
+      return _buildDropdown(
+        context,
+        label: "Value",
+        items:
+            ["Set", "Not Set"]
+                .map(
+                  (option) => DropdownMenuItem<String>(
+                    value: option.toLowerCase(),
+                    child: Text(option),
+                  ),
+                )
+                .toList(),
+        onChanged: (value) => selectedValue.value = value ?? "",
+      );
+    }
+
+    // Handle 'is' operator with Set/Unset options
+    if (["like", "not like"].contains(operator)) {
+      return _buildTextField(context, "use % as wildcard");
+    }
+    // Handle 'in', 'not in' → convert comma-separated string to list
+    if (["in", "not in"].contains(operator)) {
+      return _buildMultiSelectField(context, operator);
+    }
+
+    // Default TextFormField
+    return _buildTextField(context, "Value");
+  }
+
+  Widget _buildMultiSelectField(BuildContext context, String operator) {
+    String? currentValue = selectedValue.value;
+
+    if (currentValue != null &&
+        selectedValue.value is String &&
+        currentValue.contains(',')) {
+      selectedValue.value =
+          currentValue.split(',').map((s) => s.trim()).toList();
+    }
+
+    return TextFormField(
+      controller:
+          _valueController
+            ..text =
+                selectedValue.value is List
+                    ? selectedValue.value.join(", ")
+                    : selectedValue.value.toString(),
+      decoration: InputDecoration(labelText: "Comma-separated values"),
+      onChanged: (value) {
+        if (["in", "not in"].contains(operator)) {
+          selectedValue.value = value; // Store raw string until used
+        }
+      },
+    );
+  }
+
+  Widget _buildDropdown(
+    BuildContext context, {
+    required String label,
+    required List<DropdownMenuItem<String>> items,
+    required void Function(String? value) onChanged,
+  }) {
+    return DropdownButtonFormField<String>(
+      decoration: InputDecoration(labelText: label),
+      isExpanded: true,
+      items: items,
+      onChanged: onChanged,
+    );
+  }
+
+  Widget _buildDateField(BuildContext context, String operator) {
+    return ListTile(
+      title: Text(selectedField.value!.label),
+      subtitle: Obx(() {
+        var value = selectedValue.value;
+
+        if (value is List && operator == "Between" && value.length == 2) {
+          return Text("${value[0]} to ${value[1]}");
+        } else if (value is String || value is DateTime) {
+          final dateStr = value.toString().split(" ").first;
+          return Text(dateStr);
+        }
+
+        return Text("Select Date");
+      }),
+      trailing: Icon(Icons.calendar_today),
+      onTap: () async {
+        if (operator == "Between") {
+          final range = await showDateRangePicker(
+            context: context,
+            firstDate: DateTime(1900),
+            lastDate: DateTime(2100),
+            initialEntryMode: DatePickerEntryMode.calendarOnly,
+          );
+
+          if (range != null) {
+            selectedValue.value = [
+              DateFormat('yyyy-MM-dd').format(range.start),
+              DateFormat('yyyy-MM-dd').format(range.end),
+            ];
+          }
+        } else {
+          final date = await showDatePicker(
+            context: context,
+            firstDate: DateTime(1900),
+            lastDate: DateTime(2100),
+          );
+
+          if (date != null) {
+            selectedValue.value = DateFormat('yyyy-MM-dd').format(date);
+          }
+        }
+      },
+    );
+  }
+
+  Widget _buildTextField(BuildContext context, String labelText) {
+    return TextFormField(
+      controller: _valueController,
+      keyboardType: TextInputType.text,
+      maxLines: null,
+      maxLength: null,
+      decoration: InputDecoration(
+        labelText: labelText,
+        alignLabelWithHint: true,
+        isDense: true,
+        contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+      ),
+      validator: (value) {
+        if ((value?.trim().isEmpty ?? true)) {
+          return "Please enter a value";
+        }
+        return null;
+      },
+      onChanged: (value) => selectedValue.value = value,
+    );
+  }
+
+  List<FilterField> getFieldsNameForFilter(dynamic prefs, String doctype) {
+    List<FilterField> filterFields = [];
+    bool fullForm = true;
+    String? tabsAsString = prefs.getString('tabs $doctype $fullForm');
+    if (tabsAsString != null) {
+      Map<String, List<FormFieldData>> tabs = decodeFormFieldsMap(tabsAsString);
+      for (var tab in tabs.values) {
+        for (var field in tab) {
+          if (field.type == FieldType.unknown ||
+              field.type == FieldType.tabBreak ||
+              field.type == FieldType.table) {
+            continue;
+          }
+          if (field.type == FieldType.text) field.options = null;
+          filterFields.add(
+            FilterField(
+              name: field.fieldName,
+              label: field.label ?? "",
+              type: field.type,
+              options: field.options,
+            ),
+          );
+        }
+      }
+    }
+    return filterFields;
   }
 
   void clearFilters() {
@@ -420,6 +505,18 @@ class ListViewController extends GetxController {
     if (response.statusCode != 200) {
       String message = jsonDecode(response.body)['exception'];
       showAutoDismissDialog(context, message);
+    } else {
+      Map<String, dynamic> data = jsonDecode(response.body);
+      if (data["_server_messages"] != null) {
+        var errorMessages = jsonDecode(data["_server_messages"]);
+        String errorMessage = jsonDecode(errorMessages[0])['message'];
+        String cleanErrorMessage = removeHtmlTags(errorMessage);
+        showAutoDismissDialog(context, "Error: $cleanErrorMessage");
+      } else {
+        clearSelections();
+        Get.off(ListViewScreen(doctype: doctype), preventDuplicates: false);
+        // showAutoDismissDialog(context, "deleted Successfully");
+      }
     }
     clearSelections();
   }
@@ -493,9 +590,24 @@ class ListViewController extends GetxController {
             doctype,
             filter.field.name,
             filter.operator.name,
-            filter.value,
           ];
-          return '[${parts.map((p) => '"$p"').join(', ')}]';
+
+          // Apply quotes only on first 3 items
+          List<String> quotedParts = parts.map((p) => '"$p"').toList();
+
+          // Handle value separately
+          String valueStr;
+          if (filter.value is List) {
+            // If value is already a list, encode it as JSON array
+            valueStr = jsonEncode(filter.value);
+          } else {
+            // If it's a single value, just quote it
+            valueStr = '"${filter.value}"';
+          }
+
+          // Join quoted parts + raw value
+          String result = '[${quotedParts.join(", ")}, $valueStr]';
+          return result;
         }).toList();
 
     return '[${filterStrings.join(', ')}]';
@@ -573,41 +685,13 @@ class ListViewController extends GetxController {
   }
 }
 
-List<FilterField> getFieldsNameForFilter(dynamic prefs, String doctype) {
-  List<FilterField> filterFields = [];
-  bool fullForm = true;
-  String? tabsAsString = prefs.getString('tabs $doctype $fullForm');
-  if (tabsAsString != null) {
-    Map<String, List<FormFieldData>> tabs = decodeFormFieldsMap(tabsAsString);
-    for (var tab in tabs.values) {
-      for (var field in tab) {
-        if (field.type == FieldType.unknown ||
-            field.type == FieldType.tabBreak ||
-            field.type == FieldType.table) {
-          continue;
-        }
-        if (field.type == FieldType.text) field.options = null;
-        filterFields.add(
-          FilterField(
-            name: field.fieldName,
-            label: field.label ?? "",
-            type: field.type,
-            options: field.options,
-          ),
-        );
-      }
-    }
-  }
-  return filterFields;
-}
-
 class Filter {
   Filter({required this.field, required this.operator, required this.value});
   FilterField field;
 
   FilterField operator;
 
-  String value;
+  dynamic value;
 }
 
 class FilterField {

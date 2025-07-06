@@ -68,16 +68,20 @@ class LoginController extends GetxController {
             isLoading.value = false;
             Get.off(() => HomePage(app: 'Home'));
           } else {
-            String message = "Failed to fetch dashboard page. Status code: ${dashboardResponse.statusCode}";
+            String message =
+                "Failed to fetch dashboard page. Status code: ${dashboardResponse.statusCode}";
             showAutoDismissDialog(context, message);
+            isLoading.value = false;
           }
         } else {
           String message = jsonDecode(loginResponse.body)['message'];
           showAutoDismissDialog(context, message);
+          isLoading.value = false;
         }
       } catch (e) {
         isLoading.value = false;
         showAutoDismissDialog(context, e.toString());
+        isLoading.value = false;
       }
     } else {
       print("Email and password cannot be empty.");
