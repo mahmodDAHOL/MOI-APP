@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 
@@ -591,5 +592,36 @@ class FormController extends GetxController {
 
     // Return updated fieldMeta with ordered data
     return {...fieldMeta, 'data': orderedData};
+  }
+
+  Future<void> removeTableRow(
+    String tableFieldName,
+    int index,
+    BuildContext context,
+  ) async {
+    bool? confirm = await showConfirmationDialog(
+      context,
+      'Are you sure you want to delete this row?',
+    );
+
+    if (confirm == true) {
+      tableRowValues[tableFieldName]?.removeAt(index);
+      tableRowValues.refresh();
+    }
+  }
+
+  Future<void> clearTableRows(
+    String tableFieldName,
+    BuildContext context,
+  ) async {
+    bool? confirm = await showConfirmationDialog(
+      context,
+      'Are you sure you want to delete all rows?',
+    );
+
+    if (confirm == true) {
+      tableRowValues[tableFieldName]?.clear();
+      tableRowValues.refresh();
+    }
   }
 }

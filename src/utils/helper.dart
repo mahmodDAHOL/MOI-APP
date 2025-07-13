@@ -640,3 +640,23 @@ String removeHtmlTags(String htmlString) {
   final RegExp exp = RegExp(r"<[^>]*>", multiLine: true, caseSensitive: true);
   return htmlString.replaceAll(exp, '').replaceAll(RegExp(r'\s+'), ' ').trim();
 }
+
+Future<bool?> showConfirmationDialog(BuildContext context, String message) {
+  return showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text("Confirm"),
+      content: Text(message),
+      actions: [
+        TextButton(
+          onPressed: Navigator.of(context).pop,
+          child: Text("No"),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          child: Text("Yes"),
+        ),
+      ],
+    ),
+  );
+}

@@ -34,7 +34,9 @@ class TableWithAddButton extends StatelessWidget {
               child: Table(
                 border: TableBorder.all(color: Colors.grey),
                 defaultColumnWidth: const FixedColumnWidth(150.0),
-
+                columnWidths: {
+                  0: FixedColumnWidth(50.0), // First column (index 0) is small
+                },
                 children: [
                   getTableHeader(context, tableFields),
 
@@ -61,7 +63,7 @@ class TableWithAddButton extends StatelessWidget {
     });
   }
 
-  TableRow GetTableRow(
+  TableRow getTableRow(
     String tableFieldName,
     Map<dynamic, dynamic> row, // Make sure row is typed
     int rowIndex,
@@ -115,9 +117,20 @@ class TableWithAddButton extends StatelessWidget {
             })
             .whereType<TableCell>()
             .toList();
-
+    List<Widget> rowWithDel = [
+      Center(
+        child: IconButton(
+          icon: Icon(Icons.delete),
+          onPressed: () {
+            // Clear all rows
+            controller.removeTableRow(tableFieldName, rowIndex, context);
+          },
+        ),
+      ),
+      ...cells,
+    ];
     // Return TableRow with ordered cells
-    return TableRow(children: cells);
+    return TableRow(children: rowWithDel);
   }
 
   List<TableRow> getTableRows(String tableFieldName, BuildContext context) {
@@ -126,7 +139,7 @@ class TableWithAddButton extends StatelessWidget {
         tableFields.asMap().entries.map((entry) {
           int rowIndex = entry.key;
           Map<dynamic, dynamic> row = entry.value;
-          return GetTableRow(tableFieldName, row, rowIndex, context);
+          return getTableRow(tableFieldName, row, rowIndex, context);
         }).toList();
     return tableRows;
   }
@@ -148,11 +161,22 @@ class TableWithAddButton extends StatelessWidget {
               );
             })
             .toList();
+    List<Widget> header = [
+      IconButton(
+        icon: Icon(Icons.delete),
+        onPressed: () {
+          // Clear all rows
+          controller.clearTableRows(field.fieldName, context);
+        },
+      ),
+      ...tableFieldsName,
+    ];
+
     return TableRow(
       decoration: BoxDecoration(
         color: Colors.grey[300], // Gray background for header row
       ),
-      children: tableFieldsName,
+      children: header,
     );
   }
 
