@@ -63,7 +63,7 @@ class FormFieldData {
   factory FormFieldData.fromJson(Map<String, dynamic> json) {
     return FormFieldData(
       fieldName: json['fieldName'] ?? "",
-      type: stringToFieldType(json['type']),
+      type: stringToFieldType(json['type'], json['fieldName']),
       label: json['label'],
       options: json['options'],
       defaultValue: json['defaultValue'],

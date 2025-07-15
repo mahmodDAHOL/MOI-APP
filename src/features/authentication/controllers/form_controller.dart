@@ -288,7 +288,7 @@ class FormController extends GetxController {
     Map<String, dynamic> dataMap = fieldMeta['data'];
 
     final String fieldTypeStr = fieldMeta['fieldtype'] ?? 'Unknown';
-    final FieldType fieldType = stringToFieldType(fieldTypeStr);
+    final FieldType fieldType = stringToFieldType(fieldTypeStr, "sddd");
     TableDoctypeData tableDoctypeData = TableDoctypeData(
       docstatus: 0,
       doctype: fieldMeta['options'],
@@ -303,7 +303,7 @@ class FormController extends GetxController {
         dataMap.entries.map((entry) {
           return FormFieldData(
             fieldName: entry.key,
-            type: stringToFieldType(entry.value['fieldtype']),
+            type: stringToFieldType(entry.value['fieldtype'], "dddd"),
             label: fieldMeta['label'] ?? entry.key,
             options: fieldMeta['options'],
             defaultValue: fieldMeta['default'],
@@ -350,7 +350,7 @@ class FormController extends GetxController {
       return getTableFormFieldsData(fieldName, fieldMeta, tableIndex);
     }
 
-    final FieldType fieldType = stringToFieldType(fieldTypeStr);
+    final FieldType fieldType = stringToFieldType(fieldTypeStr, fieldName);
 
     try {
       return FormFieldData(

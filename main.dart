@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_quill/flutter_quill.dart';
 import 'package:get/get.dart';
 import 'package:moi_app/src/features/authentication/screens/home/home_page.dart';
 import 'package:moi_app/src/utils/theme/theme.dart';
@@ -47,6 +49,12 @@ class App extends StatelessWidget {
       defaultTransition: Transition.leftToRightWithFade,
       transitionDuration: const Duration(milliseconds: 500),
       home: HomePage(app:'Home'),
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        FlutterQuillLocalizations.delegate,
+      ],
     );
   }
 }

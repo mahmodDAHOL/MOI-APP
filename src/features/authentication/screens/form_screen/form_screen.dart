@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import '../../../../common_widgets/form/collapsable_list_widget.dart';
 import '../../../../common_widgets/form/table.dart';
+import '../../../../common_widgets/rich_text_field.dart';
 import '../../../../utils/helper.dart';
 import '../../controllers/form_controller.dart';
 import '../../models/field_type_model.dart';
@@ -128,6 +129,8 @@ class _DynamicFormState extends State<DynamicForm> {
           ),
           // ),
         );
+      case FieldType.textEditor:
+        return RichTextField(labelText: field.label, fieldName:field.fieldName);
 
       case FieldType.select:
         return Obx(() {
